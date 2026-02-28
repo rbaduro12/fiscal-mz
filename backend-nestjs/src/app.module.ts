@@ -28,6 +28,7 @@ import { NotificacoesModule } from './modules/notificacoes/notificacoes.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { FiscalModule } from './modules/fiscal/fiscal.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { FiscalModule } from './modules/fiscal/fiscal.module';
     WorkflowModule,
     SeedModule,
     FiscalModule,
+    EmailModule,
   ],
 })
 export class AppModule {}

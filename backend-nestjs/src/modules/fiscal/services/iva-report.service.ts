@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Documento, TipoDocumento, TipoOperacaoIVA } from '../../documentos/entities/documento.entity';
-import { DeclaracaoIVA } from '../entities/declaracao-iva.entity';
+import { DeclaracaoIVA, EstadoDeclaracao } from '../entities/declaracao-iva.entity';
 import { Empresa } from '../../empresas/entities/empresa.entity';
 
 @Injectable()
 export class IvaReportService {
+  private readonly logger = new Logger(IvaReportService.name);
+
   constructor(
     @InjectRepository(Documento)
     private documentoRepo: Repository<Documento>,
@@ -40,7 +42,7 @@ export class IvaReportService {
         empresaId,
         periodoAno: ano,
         periodoMes: mes,
-        estado: 'RASCUNHO' as any,
+        estado: EstadoDeclaracao.RASCUNHO,
       });
     }
 
@@ -360,5 +362,53 @@ export class IvaReportService {
       where: { empresaId },
       order: { periodoAno: 'DESC', periodoMes: 'DESC' },
     });
+  }
+
+  /**
+   * Obter uma declaração específica
+   */
+  async obterDeclaracao(id: string, empresaId: string): Promise<DeclaracaoIVA> {
+    const declaracao = await this.declaracaoRepo.findOne({
+      where: { id, empresaId },
+    });
+
+    if (!declaracao) {
+      throw new Error('Declaração não encontrada');
+    }
+
+    return declaracao;
+  }
+
+  /**
+   * Submeter declaração à AT (simulação)
+   */
+  async submeterDeclaracao(id: string, empresaId: string): Promise<DeclaracaoIVA> {
+    const declaracao = await this.obterDeclaracao(id, empresaId);
+
+    if (declaracao.estado === 'SUBMETIDA') {
+      throw new Error('Declaração já foi submetida');
+    }
+
+    // Gerar código de validação único
+    const codigoValidacao = this.gerarCodigoValidacao();
+
+    declaracao.estado = EstadoDeclaracao.SUBMETIDA;
+    declaracao.dataSubmissao = new Date();
+    declaracao.numeroConfirmacaoAT = codigoValidacao;
+
+    await this.declaracaoRepo.save(declaracao);
+
+    this.logger.log(`Declaração ${id} submetida com código ${codigoValidacao}`);
+
+    return declaracao;
+  }
+
+  /**
+   * Gera um código de validação único
+   */
+  private gerarCodigoValidacao(): string {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `AT-${timestamp}-${random}`;
   }
 }
