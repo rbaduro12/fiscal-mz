@@ -1,296 +1,272 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { CreditCard, Banknote, Shield, X, Check, Loader2 } from 'lucide-react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { CreditCard, ArrowRight, Loader2, CheckCircle, Clock, AlertCircle, QrCode } from 'lucide-react'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { FiscalBadge } from '@/components/ui/fiscal-badge'
+import { useProformas } from '@/hooks/use-documentos'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/payments')({
   component: PaymentsPage,
 })
 
-const payments = [
-  { id: 'PAY-001', proforma: 'P/2024/0015', client: 'ABC Lda.', amount: 12500, method: 'M-Pesa', status: 'PAGO', date: '2024-01-15' },
-  { id: 'PAY-002', proforma: 'P/2024/0014', client: 'XYZ Comercial', amount: 8900, method: 'Numerário', status: 'PENDENTE', date: '2024-01-14' },
-  { id: 'PAY-003', proforma: 'P/2024/0013', client: 'Mega Store', amount: 23400, method: 'Escrow', status: 'EM_PROCESSAMENTO', date: '2024-01-13' },
-  { id: 'PAY-004', proforma: 'P/2024/0012', client: 'Global Services', amount: 15600, method: 'Cartão', status: 'FALHADO', date: '2024-01-12' },
+const metodosPagamento = [
+  { id: 'MPESA', nome: 'M-Pesa', cor: 'bg-red-500', icon: '📱' },
+  { id: 'EMOLA', nome: 'E-Mola', cor: 'bg-blue-500', icon: '💳' },
+  { id: 'BIM', nome: 'BIM Pay', cor: 'bg-green-500', icon: '🏦' },
+  { id: 'CASH', nome: 'Dinheiro', cor: 'bg-yellow-500', icon: '💵' },
+  { id: 'CARTAO', nome: 'Cartão', cor: 'bg-purple-500', icon: '💳' },
 ]
 
 function PaymentsPage() {
-  const [showModal, setShowModal] = useState(false)
-  const [selectedProforma, setSelectedProforma] = useState<string | null>(null)
-
-  const handleNewPayment = (proformaId: string) => {
-    setSelectedProforma(proformaId)
-    setShowModal(true)
+  const { data: proformasData, isLoading } = useProformas({ estado: 'EMITIDA', limit: 20 })
+  const [proformaSelecionada, setProformaSelecionada] = useState<string | null>(null)
+  const [metodoSelecionado, setMetodoSelecionado] = useState<string>('')
+  const [telefone, setTelefone] = useState('')
+  const [valorPago, setValorPago] = useState('')
+  const [processing, setProcessing] = useState(false)
+  
+  const proformas = proformasData?.items || []
+  
+  const proformaAtual = proformas.find(p => p.id === proformaSelecionada)
+  
+  const handlePagamento = async () => {
+    if (!proformaSelecionada || !metodoSelecionado) return
+    
+    setProcessing(true)
+    // Simulação de processamento - em produção chamaria a API
+    await new Promise(r => setTimeout(r, 2000))
+    setProcessing(false)
+    alert('Pagamento processado com sucesso!')
+    setProformaSelecionada(null)
+    setMetodoSelecionado('')
+  }
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 text-boho-accent animate-spin" />
+          <p className="text-boho-brown">Carregando...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-fm-primary">Pagamentos</h1>
-        <p className="text-fm-muted mt-1">Gerencie pagamentos e transações</p>
+        <h1 className="text-3xl font-bold text-boho-coffee">Pagamentos</h1>
+        <p className="text-boho-brown mt-1">Efetue pagamentos de proformas e faturas</p>
       </div>
 
-      {/* Payment Methods Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <PaymentMethodCard
-          icon={<CreditCard className="w-6 h-6" />}
-          name="M-Pesa"
-          count={12}
-          volume="MZN 125.000"
-          color="from-purple-500/20 to-purple-600/10"
-        />
-        <PaymentMethodCard
-          icon={<Banknote className="w-6 h-6" />}
-          name="Numerário"
-          count={8}
-          volume="MZN 45.000"
-          color="from-green-500/20 to-green-600/10"
-        />
-        <PaymentMethodCard
-          icon={<CreditCard className="w-6 h-6" />}
-          name="Cartão"
-          count={5}
-          volume="MZN 67.000"
-          color="from-blue-500/20 to-blue-600/10"
-        />
-        <PaymentMethodCard
-          icon={<Shield className="w-6 h-6" />}
-          name="Escrow"
-          count={3}
-          volume="MZN 89.000"
-          color="from-amber-500/20 to-amber-600/10"
-        />
-      </div>
+      {!proformaSelecionada ? (
+        <>
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <FiscalCard className="bg-gradient-to-br from-boho-terracotta/10 to-boho-terracotta/5">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-boho-terracotta/10 rounded-lg">
+                  <CreditCard className="w-6 h-6 text-boho-terracotta" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-boho-coffee">
+                    MZN {proformas.reduce((acc, p) => acc + (p.totalPagar || 0), 0).toLocaleString('pt-MZ')}
+                  </p>
+                  <p className="text-sm text-boho-brown">Total a pagar</p>
+                </div>
+              </div>
+            </FiscalCard>
 
-      {/* Payments Table */}
-      <FiscalCard>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold">Transações Recentes</h2>
-          <button
-            onClick={() => handleNewPayment('P/2024/0016')}
-            className="px-4 py-2 bg-fm-accent hover:bg-[#4F5BC0] text-white rounded-lg font-medium transition-colors"
-          >
-            Novo Pagamento
-          </button>
-        </div>
+            <FiscalCard className="bg-gradient-to-br from-boho-mustard/10 to-boho-mustard/5">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-boho-mustard/10 rounded-lg">
+                  <Clock className="w-6 h-6 text-boho-mustard" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-boho-coffee">{proformas.length}</p>
+                  <p className="text-sm text-boho-brown">Proformas pendentes</p>
+                </div>
+              </div>
+            </FiscalCard>
 
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-fm-default">
-              <th className="text-left py-4 px-4 text-fm-muted font-medium">ID</th>
-              <th className="text-left py-4 px-4 text-fm-muted font-medium">Proforma</th>
-              <th className="text-left py-4 px-4 text-fm-muted font-medium">Cliente</th>
-              <th className="text-left py-4 px-4 text-fm-muted font-medium">Método</th>
-              <th className="text-right py-4 px-4 text-fm-muted font-medium">Valor</th>
-              <th className="text-center py-4 px-4 text-fm-muted font-medium">Status</th>
-              <th className="text-left py-4 px-4 text-fm-muted font-medium">Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((payment) => (
-              <tr key={payment.id} className="border-b border-fm-default/50 hover:bg-fm-primary/50">
-                <td className="py-4 px-4 text-fm-accent font-mono font-medium">{payment.id}</td>
-                <td className="py-4 px-4 text-fm-primary">{payment.proforma}</td>
-                <td className="py-4 px-4 text-fm-primary">{payment.client}</td>
-                <td className="py-4 px-4">
-                  <span className="flex items-center gap-2 text-fm-muted">
-                    {payment.method === 'M-Pesa' && <CreditCard size={16} />}
-                    {payment.method === 'Numerário' && <Banknote size={16} />}
-                    {payment.method === 'Escrow' && <Shield size={16} />}
-                    {payment.method}
-                  </span>
-                </td>
-                <td className="py-4 px-4 text-right font-mono">
-                  MZN {payment.amount.toLocaleString('pt-MZ')}
-                </td>
-                <td className="py-4 px-4 text-center">
-                  <FiscalBadge status={payment.status as any} />
-                </td>
-                <td className="py-4 px-4 text-fm-muted">{payment.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </FiscalCard>
-
-      {/* Payment Modal */}
-      {showModal && (
-        <PaymentModal
-          proformaId={selectedProforma}
-          amount={12500}
-          onClose={() => setShowModal(false)}
-        />
-      )}
-    </div>
-  )
-}
-
-function PaymentMethodCard({ icon, name, count, volume, color }: {
-  icon: React.ReactNode
-  name: string
-  count: number
-  volume: string
-  color: string
-}) {
-  return (
-    <FiscalCard className={`bg-gradient-to-br ${color} border-transparent`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 bg-fm-primary/50 rounded-lg text-fm-primary">
-          {icon}
-        </div>
-        <span className="text-2xl font-bold text-fm-primary">{count}</span>
-      </div>
-      <h3 className="text-fm-primary font-medium mb-1">{name}</h3>
-      <p className="text-sm text-fm-muted">Volume: {volume}</p>
-    </FiscalCard>
-  )
-}
-
-// Payment Modal Component
-function PaymentModal({ proformaId, amount, onClose }: { proformaId: string | null; amount: number; onClose: () => void }) {
-  const [step, setStep] = useState<'method' | 'summary' | 'processing' | 'success'>('method')
-  const [selectedMethod, setSelectedMethod] = useState<string>('')
-  const [, setIsProcessing] = useState(false)
-
-  const methods = [
-    { id: 'mpesa', name: 'M-Pesa', icon: <CreditCard size={24} />, description: 'Pagamento via M-Pesa' },
-    { id: 'cash', name: 'Numerário', icon: <Banknote size={24} />, description: 'Pagamento em dinheiro' },
-    { id: 'card', name: 'Cartão', icon: <CreditCard size={24} />, description: 'Cartão de crédito/débito' },
-    { id: 'escrow', name: 'Escrow', icon: <Shield size={24} />, description: 'Pagamento em escrow' },
-  ]
-
-  const handleMethodSelect = (methodId: string) => {
-    setSelectedMethod(methodId)
-    setStep('summary')
-  }
-
-  const handleConfirm = () => {
-    setStep('processing')
-    setIsProcessing(true)
-    setTimeout(() => {
-      setIsProcessing(false)
-      setStep('success')
-    }, 3000)
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="w-full max-w-lg bg-fm-secondary rounded-2xl border border-fm-default shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-fm-default">
-          <div>
-            <h2 className="text-xl font-bold text-fm-primary">
-              {step === 'method' && 'Método de Pagamento'}
-              {step === 'summary' && 'Confirmar Pagamento'}
-              {step === 'processing' && 'Processando...'}
-              {step === 'success' && 'Pagamento Concluído'}
-            </h2>
-            <p className="text-sm text-fm-muted mt-1">
-              {proformaId && `Proforma: ${proformaId}`}
-            </p>
+            <FiscalCard className="bg-gradient-to-br from-boho-sage/10 to-boho-sage/5">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-boho-sage/10 rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-boho-sage" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-boho-coffee">0</p>
+                  <p className="text-sm text-boho-brown">Pagamentos hoje</p>
+                </div>
+              </div>
+            </FiscalCard>
           </div>
+
+          {/* Lista de Proformas */}
+          <FiscalCard>
+            <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Proformas Pendentes</h2>
+            
+            {proformas.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckCircle className="w-16 h-16 text-boho-sage mx-auto mb-4" />
+                <p className="text-boho-brown">Nenhuma proforma pendente!</p>
+                <p className="text-sm text-boho-taupe mt-2">Todas as suas proformas estão pagas.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {proformas.map((proforma) => (
+                  <div 
+                    key={proforma.id}
+                    className="p-4 border border-boho-beige rounded-xl hover:border-boho-accent transition-colors cursor-pointer"
+                    onClick={() => {
+                      setProformaSelecionada(proforma.id)
+                      setValorPago(proforma.totalPagar?.toString() || '')
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-boho-accent/10 rounded-xl flex items-center justify-center">
+                          <CreditCard className="w-6 h-6 text-boho-accent" />
+                        </div>
+                        <div>
+                          <p className="font-mono text-sm text-boho-accent">{proforma.numeroCompleto}</p>
+                          <p className="font-medium text-boho-coffee">{proforma.entidade?.nome}</p>
+                          <p className="text-sm text-boho-brown">
+                            Vence em {proforma.dataValidade 
+                              ? new Date(proforma.dataValidade).toLocaleDateString('pt-MZ')
+                              : 'N/A'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono text-xl font-bold text-boho-coffee">
+                          MZN {proforma.totalPagar?.toLocaleString('pt-MZ')}
+                        </p>
+                        <FiscalBadge status="PENDENTE" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </FiscalCard>
+        </>
+      ) : (
+        /* Tela de Pagamento */
+        <div className="max-w-2xl mx-auto">
           <button
-            onClick={onClose}
-            className="p-2 hover:bg-fm-tertiary rounded-lg text-fm-muted"
+            onClick={() => setProformaSelecionada(null)}
+            className="mb-4 text-boho-accent hover:underline flex items-center gap-2"
           >
-            <X size={20} />
+            <ArrowRight className="rotate-180" size={16} />
+            Voltar para lista
           </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          {step === 'method' && (
-            <div className="space-y-3">
-              {methods.map((method) => (
-                <button
-                  key={method.id}
-                  onClick={() => handleMethodSelect(method.id)}
-                  className="w-full flex items-center gap-4 p-4 bg-fm-primary hover:bg-fm-tertiary border border-fm-default hover:border-[#5E6AD2] rounded-xl transition-colors text-left"
-                >
-                  <div className="p-3 bg-fm-accent/10 rounded-lg text-fm-accent">
-                    {method.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-fm-primary font-medium">{method.name}</h3>
-                    <p className="text-sm text-fm-muted">{method.description}</p>
-                  </div>
-                  <div className="w-6 h-6 rounded-full border-2 border-fm-default" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {step === 'summary' && (
-            <div className="space-y-6">
-              <div className="p-4 bg-fm-primary rounded-xl space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-fm-muted">Proforma</span>
-                  <span className="text-fm-primary font-mono">{proformaId}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-fm-muted">Método</span>
-                  <span className="text-fm-primary">
-                    {methods.find(m => m.id === selectedMethod)?.name}
-                  </span>
-                </div>
-                <div className="border-t border-fm-default pt-3 flex justify-between">
-                  <span className="text-fm-primary font-medium">Total a Pagar</span>
-                  <span className="text-2xl font-bold text-fm-accent font-mono">
-                    MZN {amount.toLocaleString('pt-MZ')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setStep('method')}
-                  className="flex-1 py-3 border border-fm-default hover:border-[#6E7681] text-fm-muted rounded-lg font-medium transition-colors"
-                >
-                  Voltar
-                </button>
-                <button
-                  onClick={handleConfirm}
-                  className="flex-1 py-3 bg-fm-accent hover:bg-[#4F5BC0] text-white rounded-lg font-medium transition-colors"
-                >
-                  Confirmar Pagamento
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === 'processing' && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-6 relative">
-                <div className="absolute inset-0 border-4 border-fm-default rounded-full" />
-                <div className="absolute inset-0 border-4 border-[#5E6AD2] rounded-full border-t-transparent animate-spin" />
-                <Loader2 className="absolute inset-0 m-auto text-fm-accent animate-spin" size={24} />
-              </div>
-              <h3 className="text-lg font-medium text-fm-primary mb-2">Processando pagamento</h3>
-              <p className="text-fm-muted">Aguarde enquanto processamos sua transação...</p>
-            </div>
-          )}
-
-          {step === 'success' && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-6 bg-[#10B981]/10 rounded-full flex items-center justify-center">
-                <Check className="text-[#10B981]" size={32} />
-              </div>
-              <h3 className="text-lg font-medium text-fm-primary mb-2">Pagamento confirmado!</h3>
-              <p className="text-fm-muted mb-6">
-                O pagamento de MZN {amount.toLocaleString('pt-MZ')} foi processado com sucesso.
+          
+          <FiscalCard>
+            <div className="text-center mb-6">
+              <p className="text-boho-brown mb-2">Pagamento da proforma</p>
+              <p className="font-mono text-3xl font-bold text-boho-coffee">{proformaAtual?.numeroCompleto}</p>
+              <p className="text-4xl font-bold text-boho-accent mt-4">
+                MZN {proformaAtual?.totalPagar?.toLocaleString('pt-MZ')}
               </p>
-              <button
-                onClick={onClose}
-                className="w-full py-3 bg-fm-accent hover:bg-[#4F5BC0] text-white rounded-lg font-medium transition-colors"
-              >
-                Fechar
-              </button>
             </div>
-          )}
+            
+            {/* Métodos de Pagamento */}
+            <div className="mb-6">
+              <label className="text-sm text-boho-brown block mb-3">Selecione o método de pagamento</label>
+              <div className="grid grid-cols-3 gap-3">
+                {metodosPagamento.map((metodo) => (
+                  <button
+                    key={metodo.id}
+                    onClick={() => setMetodoSelecionado(metodo.id)}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      metodoSelecionado === metodo.id
+                        ? 'border-boho-accent bg-boho-accent/10'
+                        : 'border-boho-beige hover:border-boho-accent/50'
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">{metodo.icon}</div>
+                    <p className="text-sm font-medium text-boho-coffee">{metodo.nome}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Campos específicos por método */}
+            {metodoSelecionado && (
+              <div className="space-y-4 mb-6">
+                {(metodoSelecionado === 'MPESA' || metodoSelecionado === 'EMOLA' || metodoSelecionado === 'BIM') && (
+                  <div>
+                    <label className="text-sm text-boho-brown block mb-2">Número de telefone</label>
+                    <input
+                      type="tel"
+                      value={telefone}
+                      onChange={(e) => setTelefone(e.target.value)}
+                      placeholder="+258 84 123 4567"
+                      className="w-full px-4 py-3 bg-boho-cream border border-boho-beige rounded-lg text-boho-coffee placeholder:text-boho-taupe focus:outline-none focus:ring-2 focus:ring-boho-accent/50"
+                    />
+                    <p className="text-xs text-boho-taupe mt-1">
+                      Você receberá uma notificação no seu telemóvel para confirmar o pagamento.
+                    </p>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm text-boho-brown block mb-2">Valor a pagar</label>
+                  <input
+                    type="number"
+                    value={valorPago}
+                    onChange={(e) => setValorPago(e.target.value)}
+                    className="w-full px-4 py-3 bg-boho-cream border border-boho-beige rounded-lg text-boho-coffee focus:outline-none focus:ring-2 focus:ring-boho-accent/50"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* QR Code para mobile */}
+            {metodoSelecionado && (
+              <div className="text-center mb-6 p-4 bg-boho-sand/30 rounded-xl">
+                <QrCode className="w-8 h-8 text-boho-accent mx-auto mb-2" />
+                <p className="text-sm text-boho-brown">
+                  Prefere pagar pelo telemóvel?
+                </p>
+                <p className="text-xs text-boho-taupe">
+                  Escaneie o QR code com a sua app bancária
+                </p>
+                <div className="w-32 h-32 bg-white mx-auto mt-3 rounded-lg flex items-center justify-center border border-boho-beige">
+                  <span className="text-xs text-boho-taupe">QR Code</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Botão de pagamento */}
+            <button
+              onClick={handlePagamento}
+              disabled={!metodoSelecionado || processing}
+              className="w-full py-4 bg-boho-accent hover:bg-boho-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              {processing ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <CreditCard size={20} />
+                  Confirmar Pagamento
+                </>
+              )}
+            </button>
+            
+            <div className="mt-4 flex items-center gap-2 justify-center text-sm text-boho-taupe">
+              <AlertCircle size={16} />
+              <span>Pagamento seguro processado localmente</span>
+            </div>
+          </FiscalCard>
         </div>
-      </div>
+      )}
     </div>
   )
 }
