@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsOptional, IsArray, IsNumber, Min, IsDate, ValidateNested, IsEnum } from 'class-validator';
+import { IsString, IsUUID, IsOptional, IsArray, IsNumber, Min, Max, IsDate, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ItemCotacaoDTO {
@@ -28,8 +28,6 @@ export class ItemCotacaoDTO {
   @Max(100)
   descontoPercentual?: number = 0;
 }
-
-import { Max } from 'class-validator';
 
 export class CriarCotacaoDTO {
   @IsUUID()

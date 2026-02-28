@@ -24,14 +24,14 @@ export class Pagamento {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'documento_id' })
   documentoId: string;
 
   @ManyToOne(() => Documento)
   @JoinColumn({ name: 'documento_id' })
   documento: Documento;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'entidade_id' })
   entidadeId: string;
 
   @ManyToOne(() => Entidade)
@@ -47,16 +47,16 @@ export class Pagamento {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   valor: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'data_pagamento' })
   dataPagamento: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'date', nullable: true, name: 'data_compensacao' })
   dataCompensacao: Date;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ length: 255, nullable: true, name: 'referencia_externa' })
   referenciaExterna: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'comprovativo_url' })
   comprovativoUrl: string;
 
   @Column({
@@ -66,13 +66,13 @@ export class Pagamento {
   })
   estado: EstadoPagamento;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'created_by' })
   createdBy: string;
 
   @ManyToOne(() => Utilizador)
   @JoinColumn({ name: 'created_by' })
   criadoPor: Utilizador;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

@@ -14,7 +14,7 @@ export class Utilizador {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'empresa_id' })
   empresaId: string;
 
   @ManyToOne(() => Empresa, empresa => empresa.utilizadores)
@@ -24,7 +24,7 @@ export class Utilizador {
   @Column({ length: 255, unique: true })
   email: string;
 
-  @Column({ length: 255 })
+  @Column({ length: 255, name: 'password_hash' })
   passwordHash: string;
 
   @Column({ length: 255 })
@@ -40,12 +40,12 @@ export class Utilizador {
   @Column({ length: 20, nullable: true })
   telefone: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'ultimo_acesso' })
   ultimoAcesso: Date;
 
   @Column({ default: true })
   ativo: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

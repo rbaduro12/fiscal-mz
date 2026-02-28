@@ -12,7 +12,7 @@ export class Entidade {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'empresa_id' })
   empresaId: string;
 
   @ManyToOne(() => Empresa)
@@ -44,18 +44,18 @@ export class Entidade {
   @Column({ length: 255, nullable: true })
   email: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, name: 'limite_credito' })
   limiteCredito: number;
 
-  @Column({ default: 30 })
+  @Column({ default: 30, name: 'prazo_pagamento_dias' })
   prazoPagamentoDias: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, name: 'saldo_em_divida' })
   saldoEmDivida: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0, name: 'desconto_padrao' })
   descontoPadrao: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

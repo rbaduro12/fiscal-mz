@@ -13,7 +13,7 @@ export class Artigo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'empresa_id' })
   empresaId: string;
 
   @ManyToOne(() => Empresa)
@@ -33,20 +33,20 @@ export class Artigo {
   })
   tipo: TipoArtigo;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'preco_venda' })
   precoVenda: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'preco_custo' })
   precoCusto: number;
 
   // Stock
-  @Column({ default: 0 })
+  @Column({ default: 0, name: 'stock_atual' })
   stockAtual: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, name: 'stock_minimo' })
   stockMinimo: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, name: 'stock_maximo' })
   stockMaximo: number;
 
   @Column({ length: 50, nullable: true })
@@ -59,13 +59,14 @@ export class Artigo {
     type: 'enum',
     enum: TipoOperacaoIVA,
     default: TipoOperacaoIVA.TRIBUTAVEL_16,
+    name: 'categoria_iva',
   })
   categoriaIva: TipoOperacaoIVA;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 20, nullable: true, name: 'conta_contabil' })
   contaContabil: string;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'fornecedor_id' })
   fornecedorId: string;
 
   @ManyToOne(() => Entidade)
@@ -75,6 +76,6 @@ export class Artigo {
   @Column({ default: true })
   ativo: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

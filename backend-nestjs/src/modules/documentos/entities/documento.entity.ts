@@ -40,21 +40,21 @@ export class Documento {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'empresa_id' })
   empresaId: string;
 
   @ManyToOne(() => Empresa)
   @JoinColumn({ name: 'empresa_id' })
   empresa: Empresa;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'entidade_id' })
   entidadeId: string;
 
   @ManyToOne(() => Entidade)
   @JoinColumn({ name: 'entidade_id' })
   entidade: Entidade;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'utilizador_id' })
   utilizadorId: string;
 
   @ManyToOne(() => Utilizador)
@@ -73,7 +73,7 @@ export class Documento {
   @Column({ nullable: true })
   numero: number;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ length: 30, nullable: true, name: 'numero_completo' })
   numeroCompleto: string;
 
   @Column({
@@ -83,93 +83,94 @@ export class Documento {
   })
   estado: EstadoDocumento;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'documento_origem_id' })
   documentoOrigemId: string;
 
   @ManyToOne(() => Documento)
   @JoinColumn({ name: 'documento_origem_id' })
   documentoOrigem: Documento;
 
-  @Column({ type: 'date', default: () => 'CURRENT_DATE' })
+  @Column({ type: 'date', default: () => 'CURRENT_DATE', name: 'data_emissao' })
   dataEmissao: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'date', nullable: true, name: 'data_vencimento' })
   dataVencimento: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'data_pagamento' })
   dataPagamento: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'date', nullable: true, name: 'data_validade' })
   dataValidade: Date;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   subtotal: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, name: 'total_descontos' })
   totalDescontos: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, name: 'total_iva' })
   totalIva: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, name: 'total_pagar' })
   totalPagar: number;
 
   // Snapshot do cliente
-  @Column({ length: 255, nullable: true })
+  @Column({ length: 255, nullable: true, name: 'entidade_nome' })
   entidadeNome: string;
 
-  @Column({ length: 9, nullable: true })
+  @Column({ length: 9, nullable: true, name: 'entidade_nuit' })
   entidadeNuit: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'entidade_endereco' })
   entidadeEndereco: string;
 
   @Column({
     type: 'enum',
     enum: TipoOperacaoIVA,
     default: TipoOperacaoIVA.TRIBUTAVEL_16,
+    name: 'operacao_iva',
   })
   operacaoIva: TipoOperacaoIVA;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ length: 255, nullable: true, name: 'motivo_isencao' })
   motivoIsencao: string;
 
-  @Column({ length: 2, nullable: true })
+  @Column({ length: 2, nullable: true, name: 'pais_origem' })
   paisOrigem: string;
 
   // Segurança fiscal
-  @Column({ length: 64, nullable: true })
+  @Column({ length: 64, nullable: true, name: 'hash_fiscal' })
   hashFiscal: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'qr_code_data' })
   qrCodeData: string;
 
-  @Column({ length: 100, nullable: true })
+  @Column({ length: 100, nullable: true, name: 'codigo_validacao' })
   codigoValidacao: string;
 
-  @Column({ default: () => 'NOW()' })
+  @Column({ default: () => 'NOW()', name: 'data_registo_sistema' })
   dataRegistoSistema: Date;
 
   // Soft delete fiscal
   @Column({ default: false })
   anulado: boolean;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'motivo_anulacao' })
   motivoAnulacao: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'data_anulacao' })
   dataAnulacao: Date;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'anulado_por' })
   anuladoPor: string;
 
   @Column({ type: 'text', nullable: true })
   observacoes: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
   @OneToMany(() => LinhaDocumento, linha => linha.documento, { cascade: true })

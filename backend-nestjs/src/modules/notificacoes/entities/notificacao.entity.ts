@@ -18,14 +18,14 @@ export class Notificacao {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'empresa_remetente_id' })
   empresaRemetenteId: string;
 
   @ManyToOne(() => Empresa)
   @JoinColumn({ name: 'empresa_remetente_id' })
   empresaRemetente: Empresa;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'empresa_destinatario_id' })
   empresaDestinatarioId: string;
 
   @ManyToOne(() => Empresa)
@@ -38,7 +38,7 @@ export class Notificacao {
   })
   tipo: TipoNotificacao;
 
-  @Column({ type: 'uuid',  nullable: true })
+  @Column({ type: 'uuid',  nullable: true, name: 'documento_id' })
   documentoId: string;
 
   @ManyToOne(() => Documento)
@@ -54,15 +54,15 @@ export class Notificacao {
   @Column({ default: false })
   lida: boolean;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'data_leitura' })
   dataLeitura: Date;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ length: 255, nullable: true, name: 'acao_url' })
   acaoUrl: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ length: 50, nullable: true, name: 'acao_texto' })
   acaoTexto: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

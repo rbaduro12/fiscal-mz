@@ -14,7 +14,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.fiscal\.mz\/api\/v1\/.*/,
+            urlPattern: /^http:\/\/localhost:3000\/v1\/.*/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -30,8 +30,8 @@ export default defineConfig({
         name: 'FISCAL.MZ 2.0',
         short_name: 'FISCAL.MZ',
         description: 'Sistema de Gestão Fiscal e B2B',
-        theme_color: '#5E6AD2',
-        background_color: '#0F1115',
+        theme_color: '#C67B5C',
+        background_color: '#F5F1EB',
         display: 'standalone',
         scope: '/',
         start_url: '/',
@@ -69,8 +69,6 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'query': ['@tanstack/react-query', '@tanstack/react-router'],
           'ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', 'lucide-react'],
-          'charts': ['recharts'],
-          'pdf': ['jspdf', 'react-pdf'],
         },
       },
     },
@@ -79,16 +77,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
+      '/v1': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/test/setup.ts',
-    css: true,
   },
 })
