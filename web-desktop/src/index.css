@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Boho Color Palette - Light & Natural */
+    --boho-cream: #FAF7F2;
+    --boho-white: #FFFFFF;
+    --boho-sand: #F5EDE4;
+    --boho-beige: #E8DED1;
+    --boho-stone: #D4C8B8;
+    --boho-taupe: #B8A99A;
+    --boho-brown: #8B7355;
+    --boho-coffee: #6B5344;
+    --boho-terracotta: #C67B5C;
+    --boho-terracotta-light: #E8B4A0;
+    --boho-sage: #9CAF88;
+    --boho-sage-light: #B8C4A8;
+    --boho-olive: #7A8B6E;
+    --boho-mustard: #D4A574;
+    --boho-coral: #E07A5F;
+    --boho-rose: #D4A5A5;
+    --boho-lavender: #B8A9C9;
+    
+    /* Semantic Colors */
+    --background: 40 33% 97%;
+    --foreground: 30 20% 25%;
+    --card: 40 30% 96%;
+    --card-foreground: 30 20% 25%;
+    --popover: 40 30% 98%;
+    --popover-foreground: 30 20% 25%;
+    --primary: 20 45% 56%;
+    --primary-foreground: 40 33% 97%;
+    --secondary: 40 20% 90%;
+    --secondary-foreground: 30 20% 25%;
+    --muted: 40 15% 88%;
+    --muted-foreground: 30 10% 45%;
+    --accent: 88 20% 60%;
+    --accent-foreground: 40 33% 97%;
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 40 33% 97%;
+    --border: 35 20% 85%;
+    --input: 35 20% 85%;
+    --ring: 20 45% 56%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-[#FAF7F2] text-[#4A4035] antialiased;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+  }
+  
+  /* Selection styling - Boho style */
+  ::selection {
+    background-color: var(--boho-terracotta-light);
+    color: var(--boho-coffee);
+  }
+  
+  /* Scrollbar styling - Natural */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--boho-sand);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--boho-stone);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--boho-taupe);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+  
+  .font-body {
+    font-family: 'DM Sans', sans-serif;
+  }
+  
+  /* Boho Background Utilities */
+  .bg-boho-cream { background-color: #FAF7F2; }
+  .bg-boho-sand { background-color: #F5EDE4; }
+  .bg-boho-beige { background-color: #E8DED1; }
+  .bg-boho-stone { background-color: #D4C8B8; }
+  .bg-boho-white { background-color: #FFFFFF; }
+  .bg-boho-terracotta { background-color: #C67B5C; }
+  .bg-boho-terracotta-light { background-color: #E8B4A0; }
+  .bg-boho-sage { background-color: #9CAF88; }
+  .bg-boho-sage-light { background-color: #B8C4A8; }
+  .bg-boho-coffee { background-color: #6B5344; }
+  .bg-boho-mustard { background-color: #D4A574; }
+  
+  /* Text Colors */
+  .text-boho-coffee { color: #6B5344; }
+  .text-boho-brown { color: #8B7355; }
+  .text-boho-terracotta { color: #C67B5C; }
+  .text-boho-sage { color: #7A8B6E; }
+  .text-boho-taupe { color: #B8A99A; }
+  .text-boho-stone { color: #D4C8B8; }
+  
+  /* Border Colors */
+  .border-boho-stone { border-color: #D4C8B8; }
+  .border-boho-beige { border-color: #E8DED1; }
+  .border-boho-terracotta { border-color: #C67B5C; }
+  
+  /* Glass effect - Boho */
+  .glass-boho {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 200, 184, 0.3);
+  }
+  
+  /* Organic shadows */
+  .shadow-boho {
+    box-shadow: 0 4px 20px rgba(107, 83, 68, 0.08);
+  }
+  
+  .shadow-boho-lg {
+    box-shadow: 0 8px 40px rgba(107, 83, 68, 0.12);
+  }
+  
+  .shadow-boho-xl {
+    box-shadow: 0 12px 60px rgba(107, 83, 68, 0.15);
+  }
+  
+  /* Organic shapes */
+  .rounded-boho {
+    border-radius: 1.5rem;
+  }
+  
+  .rounded-boho-lg {
+    border-radius: 2rem;
+  }
+  
+  /* Text balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Focus visible styles - Boho */
+:focus-visible {
+  outline: 2px solid var(--boho-terracotta);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.4s ease-out;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

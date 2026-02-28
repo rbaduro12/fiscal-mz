@@ -1,0 +1,98 @@
+name: fiscal_mz
+version: 2.0.0+1
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+  
+  # Database
+  drift: ^2.14.0
+  drift_flutter: ^0.1.0
+  sqlite3_flutter_libs: ^0.5.18
+  
+  # Sync & Background
+  workmanager: ^0.5.2
+  connectivity_plus: ^5.0.2
+  
+  # HTTP
+  dio: ^5.4.0
+  retrofit: ^4.0.3
+  
+  # Camera & Scanner
+  mobile_scanner: ^3.5.5
+  camera: ^0.10.5+5
+  image_picker: ^1.0.7
+  
+  # OCR
+  google_mlkit_text_recognition: ^0.11.0
+  
+  # Printing
+  esc_pos_printer: ^4.1.0
+  bluetooth_thermal_printer: ^0.0.6
+  
+  # Maps
+  google_maps_flutter: ^2.5.0
+  geolocator: ^10.1.0
+  
+  # Payments
+  url_launcher: ^6.2.2
+  
+  # Security & Auth
+  local_auth: ^2.1.8
+  flutter_secure_storage: ^9.0.0
+  
+  # Notifications
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.10
+  
+  # UI
+  flutter_animate: ^4.3.0
+  shimmer: ^3.0.0
+  pull_to_refresh: ^2.0.0
+  
+  # Utils
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  intl: ^0.18.1
+  path_provider: ^2.1.1
+  share_plus: ^7.2.1
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  
+  # Code Generation
+  build_runner: ^2.4.7
+  riverpod_generator: ^2.3.9
+  freezed: ^2.4.5
+  json_serializable: ^6.7.1
+  retrofit_generator: ^8.0.6
+  drift_dev: ^2.14.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500

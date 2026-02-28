@@ -1,0 +1,298 @@
+/**
+ * FISCAL.MZ 2.0 - Design Tokens
+ * Linear-inspired Design System
+ * Version: 1.0.0
+ */
+
+/* =============================================================================
+   ROOT VARIABLES - DARK MODE (Default)
+   ============================================================================= */
+:root {
+  /* ---------------------------------------------------------------------------
+     CORE PALETTE
+     --------------------------------------------------------------------------- */
+  --color-bg-primary: #0F1115;
+  --color-bg-secondary: #161922;
+  --color-bg-tertiary: #1E2028;
+  --color-bg-elevated: #252830;
+  --color-bg-overlay: rgba(15, 17, 21, 0.85);
+  
+  --color-accent-primary: #5E6AD2;
+  --color-accent-primary-hover: #4F5BC0;
+  --color-accent-primary-active: #404CAD;
+  --color-accent-secondary: #8B5CF6;
+  --color-accent-secondary-hover: #7C3AED;
+  
+  --color-success: #10B981;
+  --color-success-dim: rgba(16, 185, 129, 0.15);
+  --color-success-glow: rgba(16, 185, 129, 0.4);
+  
+  --color-warning: #F59E0B;
+  --color-warning-dim: rgba(245, 158, 11, 0.15);
+  --color-warning-glow: rgba(245, 158, 11, 0.4);
+  
+  --color-error: #EF4444;
+  --color-error-dim: rgba(239, 68, 68, 0.15);
+  --color-error-glow: rgba(239, 68, 68, 0.4);
+  
+  --color-info: #3B82F6;
+  --color-info-dim: rgba(59, 130, 246, 0.15);
+  
+  /* ---------------------------------------------------------------------------
+     TEXT COLORS
+     --------------------------------------------------------------------------- */
+  --color-text-primary: #F7F8F8;
+  --color-text-secondary: #8B949E;
+  --color-text-muted: #6E7681;
+  --color-text-inverse: #0F1115;
+  --color-text-accent: #5E6AD2;
+  
+  /* ---------------------------------------------------------------------------
+     BORDER & DIVIDERS
+     --------------------------------------------------------------------------- */
+  --color-border: #2E3038;
+  --color-border-hover: #3E4048;
+  --color-border-active: #5E6AD2;
+  --color-divider: rgba(46, 48, 56, 0.6);
+  
+  /* ---------------------------------------------------------------------------
+     SHADOWS (Dark mode - glow effects)
+     --------------------------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  --shadow-glow-accent: 0 0 20px rgba(94, 106, 210, 0.3);
+  --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+  --shadow-glow-warning: 0 0 20px rgba(245, 158, 11, 0.3);
+  --shadow-glow-error: 0 0 20px rgba(239, 68, 68, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.5);
+  
+  /* ---------------------------------------------------------------------------
+     TYPOGRAPHY SCALE
+     --------------------------------------------------------------------------- */
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+  
+  --font-size-display: 3rem;      /* 48px */
+  --font-size-headline: 1.5rem;   /* 24px */
+  --font-size-title: 1.125rem;    /* 18px */
+  --font-size-body: 0.9375rem;    /* 15px */
+  --font-size-caption: 0.8125rem; /* 13px */
+  --font-size-small: 0.75rem;     /* 12px */
+  
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.02em;
+  
+  /* ---------------------------------------------------------------------------
+     SPACING SCALE (8px base)
+     --------------------------------------------------------------------------- */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  
+  /* ---------------------------------------------------------------------------
+     BORDER RADIUS
+     --------------------------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-sm: 0.375rem;  /* 6px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.25rem;  /* 20px */
+  --radius-full: 9999px;
+  
+  /* ---------------------------------------------------------------------------
+     Z-INDEX SCALE
+     --------------------------------------------------------------------------- */
+  --z-hide: -1;
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-drawer: 400;
+  --z-modal-backdrop: 500;
+  --z-modal: 510;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+  
+  /* ---------------------------------------------------------------------------
+     TRANSITIONS & ANIMATIONS
+     --------------------------------------------------------------------------- */
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* ---------------------------------------------------------------------------
+     LAYOUT CONSTANTS
+     --------------------------------------------------------------------------- */
+  --sidebar-width: 200px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 64px;
+  --bottom-nav-height: 64px;
+  --right-sidebar-width: 400px;
+  --max-content-width: 1440px;
+  
+  /* ---------------------------------------------------------------------------
+     COMPONENT TOKENS
+     --------------------------------------------------------------------------- */
+  /* Buttons */
+  --btn-height-sm: 2rem;      /* 32px */
+  --btn-height-md: 2.5rem;    /* 40px */
+  --btn-height-lg: 3rem;      /* 48px */
+  --btn-padding-x: 1rem;
+  --btn-radius: var(--radius-md);
+  
+  /* Inputs */
+  --input-height: 2.5rem;
+  --input-padding-x: 0.875rem;
+  --input-radius: var(--radius-md);
+  --input-border: 1px solid var(--color-border);
+  --input-focus-ring: 0 0 0 2px rgba(94, 106, 210, 0.3);
+  
+  /* Cards */
+  --card-padding: 1.25rem;
+  --card-radius: var(--radius-lg);
+  --card-bg: var(--color-bg-secondary);
+  --card-border: 1px solid var(--color-border);
+  
+  /* Badges/Pills */
+  --badge-height: 1.5rem;
+  --badge-padding-x: 0.625rem;
+  --badge-radius: var(--radius-full);
+}
+
+/* =============================================================================
+   LIGHT MODE OVERRIDE
+   ============================================================================= */
+[data-theme="light"],
+.light-mode {
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F9FAFB;
+  --color-bg-tertiary: #F3F4F6;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-overlay: rgba(255, 255, 255, 0.9);
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #4B5563;
+  --color-text-muted: #9CA3AF;
+  --color-text-inverse: #FFFFFF;
+  
+  --color-border: #E5E7EB;
+  --color-border-hover: #D1D5DB;
+  --color-divider: rgba(229, 231, 235, 0.8);
+  
+  /* Shadows for light mode - softer, more diffused */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* =============================================================================
+   REDUCED MOTION
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =============================================================================
+   GLOBAL RESETS
+   ============================================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-family-sans);
+  font-size: 16px;
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+}
+
+/* Scrollbar styling (WebKit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
+/* Focus visible outline */
+:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
