@@ -1,0 +1,87 @@
+# FISCAL.MZ Enterprise - Infraestrutura Completa
+# Fase 0: Fundação Arquitetural
+
+version: '3.8'
+
+services:
+  # ============================================================
+  # 1. PostgreSQL 15 - Banco de Dados Principal
+  # ============================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: fiscal_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fiscal_admin
+      POSTGRES_PASSWORD: fiscal_secure_2025
+      POSTGRES_DB: fiscal_mz_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend-nestjs/src/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - fiscal_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiscal_admin -d fiscal_mz_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # 2. Redis - Cache e Sessões
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: fiscal_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fiscal_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ============================================================
+  # 3. MinIO - Armazenamento de PDFs e Documentos (S3 local)
+  # ============================================================
+  minio:
+    image: minio/minio:latest
+    container_name: fiscal_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: fiscal_minio_admin
+      MINIO_ROOT_PASSWORD: fiscal_minio_secure_2025
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - fiscal_network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ============================================================
+  # 4. Backend NestJS (será adicionado no docker-compose futuramente)
+  # Por enquanto rodamos localmente para desenvolvimento
+  # ============================================================
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  fiscal_network:
+    driver: bridge

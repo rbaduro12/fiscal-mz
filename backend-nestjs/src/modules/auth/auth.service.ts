@@ -1,57 +1,75 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import { UserRole } from '../users/enums/user-role.enum';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
+import { Utilizador, UserRole } from '../utilizadores/entities/utilizador.entity';
+import { Empresa, RegimeIVA } from '../empresas/entities/empresa.entity';
 
-export interface AuthResponse {
-  access_token: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-  };
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDto {
+  email: string;
+  password: string;
+  nome: string;
+  nomeEmpresa: string;
+  nuit: string;
+}
+
+export interface JwtPayload {
+  sub: string;
+  email: string;
+  role: UserRole;
+  empresaId: string;
 }
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
+    @InjectRepository(Utilizador)
+    private utilizadorRepo: Repository<Utilizador>,
+    @InjectRepository(Empresa)
+    private empresaRepo: Repository<Empresa>,
+    private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
-    
-    if (!user) {
+  async validateUser(email: string, password: string): Promise<Utilizador | null> {
+    const user = await this.utilizadorRepo.findOne({
+      where: { email },
+      relations: ['empresa']
+    });
+
+    if (!user || !user.ativo) {
       return null;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    
-    if (!isPasswordValid) {
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
       return null;
     }
 
-    const { password: _, ...result } = user;
-    return result;
+    // Atualizar último acesso
+    user.ultimoAcesso = new Date();
+    await this.utilizadorRepo.save(user);
+
+    return user;
   }
 
-  async login(loginDto: LoginDto): Promise<AuthResponse> {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
-
+  async login(dto: LoginDto) {
+    const user = await this.validateUser(dto.email, dto.password);
+    
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const payload = {
+    const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
+      empresaId: user.empresaId,
     };
 
     return {
@@ -59,43 +77,76 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        nome: user.nome,
         role: user.role,
+        empresa: user.empresa ? {
+          id: user.empresa.id,
+          nomeFiscal: user.empresa.nomeFiscal,
+          nuit: user.empresa.nuit,
+        } : null,
       },
     };
   }
 
-  async register(registerDto: RegisterDto): Promise<AuthResponse> {
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
-
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
-    }
-
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
-    const newUser = await this.usersService.create({
-      ...registerDto,
-      password: hashedPassword,
-      role: registerDto.role || UserRole.CLIENT,
+  async register(dto: RegisterDto) {
+    // Verificar se email já existe
+    const existingUser = await this.utilizadorRepo.findOne({
+      where: { email: dto.email }
     });
 
-    const payload = {
-      sub: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    };
+    if (existingUser) {
+      throw new ConflictException('Email já registado');
+    }
+
+    // Verificar se NUIT já existe
+    const existingEmpresa = await this.empresaRepo.findOne({
+      where: { nuit: dto.nuit }
+    });
+
+    if (existingEmpresa) {
+      throw new ConflictException('NUIT já registado');
+    }
+
+    // Criar empresa
+    const empresa = this.empresaRepo.create({
+      nuit: dto.nuit,
+      nomeFiscal: dto.nomeEmpresa,
+      nomeComercial: dto.nomeEmpresa,
+      regime: RegimeIVA.NORMAL,
+      email: dto.email,
+      ativo: true,
+    });
+
+    const empresaSalva = await this.empresaRepo.save(empresa);
+
+    // Criar utilizador admin
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    
+    const utilizador = this.utilizadorRepo.create({
+      empresaId: empresaSalva.id,
+      email: dto.email,
+      passwordHash: hashedPassword,
+      nome: dto.nome,
+      role: UserRole.ADMIN,
+      ativo: true,
+    });
+
+    await this.utilizadorRepo.save(utilizador);
 
     return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        role: newUser.role,
+      message: 'Registo efectuado com sucesso',
+      empresa: {
+        id: empresaSalva.id,
+        nome: empresaSalva.nomeFiscal,
+        nuit: empresaSalva.nuit,
       },
     };
+  }
+
+  async validateToken(payload: JwtPayload): Promise<Utilizador> {
+    return this.utilizadorRepo.findOne({
+      where: { id: payload.sub },
+      relations: ['empresa']
+    });
   }
 }
