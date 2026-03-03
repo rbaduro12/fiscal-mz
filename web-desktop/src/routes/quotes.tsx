@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Plus, Search, Filter, MoreVertical, Loader2, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
-import { useCotacoes } from '@/hooks/use-documentos'
+import { useSentQuotes } from '@/hooks/use-quote-workflow'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { FiscalBadge } from '@/components/ui/fiscal-badge'
 
@@ -12,10 +12,11 @@ export const Route = createFileRoute('/quotes')({
 const statusOptions = [
   { value: '', label: 'Todos' },
   { value: 'RASCUNHO', label: 'Rascunho' },
-  { value: 'EMITIDA', label: 'Emitida' },
+  { value: 'ENVIADA', label: 'Enviada' },
   { value: 'ACEITE', label: 'Aceite' },
   { value: 'REJEITADA', label: 'Rejeitada' },
-  { value: 'PROCESSADA', label: 'Processada' },
+  { value: 'CONVERTIDA', label: 'Convertida' },
+  { value: 'EXPIRADA', label: 'Expirada' },
 ]
 
 function QuotesPage() {
@@ -24,14 +25,14 @@ function QuotesPage() {
   const [page, setPage] = useState(1)
   const limit = 10
 
-  const { data, isLoading, isError, error } = useCotacoes({
-    estado: statusFilter || undefined,
+  const { data, isLoading, isError, error } = useSentQuotes({
+    status: statusFilter || undefined,
     page,
     limit,
   })
 
   const cotacoes = data || []
-  const total = data?.total || 0
+  const total = cotacoes.length || 0
   const totalPages = Math.ceil(total / limit)
 
   if (isLoading) {
@@ -120,19 +121,19 @@ function QuotesPage() {
         <div className="bg-white rounded-xl p-4 shadow-boho border border-boho-beige">
           <p className="text-boho-taupe text-sm">Rascunhos</p>
           <p className="text-2xl font-bold text-boho-mustard">
-            {cotacoes.filter((c: any) => c.estado === 'RASCUNHO').length}
+            {cotacoes.filter((c: any) => c.status === 'RASCUNHO').length}
           </p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-boho border border-boho-beige">
-          <p className="text-boho-taupe text-sm">Emitidas</p>
+          <p className="text-boho-taupe text-sm">Enviadas</p>
           <p className="text-2xl font-bold text-boho-accent">
-            {cotacoes.filter((c: any) => c.estado === 'EMITIDA').length}
+            {cotacoes.filter((c: any) => c.status === 'ENVIADA').length}
           </p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-boho border border-boho-beige">
           <p className="text-boho-taupe text-sm">Aceites</p>
           <p className="text-2xl font-bold text-boho-sage">
-            {cotacoes.filter((c: any) => c.estado === 'ACEITE').length}
+            {cotacoes.filter((c: any) => c.status === 'ACEITE').length}
           </p>
         </div>
       </div>
@@ -172,38 +173,41 @@ function QuotesPage() {
                 cotacoes.map((cotacao: any) => (
                   <tr key={cotacao.id} className="border-b border-boho-beige/50 hover:bg-boho-sand/30 transition-colors">
                     <td className="py-4 px-4">
-                      <a
-                        href={`/quotes/${cotacao.id}`}
+                      <Link
+                        to={`/quotes/${cotacao.id}`}
                         className="text-boho-accent font-mono font-medium hover:underline"
                       >
-                        {cotacao.numeroCompleto}
-                      </a>
+                        {cotacao.numero}
+                      </Link>
                     </td>
                     <td className="py-4 px-4 text-boho-coffee">
-                      {cotacao.entidade?.nome || 'Cliente não identificado'}
+                      {cotacao.clienteId ? 'Cliente #' + cotacao.clienteId.slice(0, 8) : 'Cliente não identificado'}
                     </td>
                     <td className="py-4 px-4 text-boho-brown">
-                      {new Date(cotacao.dataEmissao).toLocaleDateString('pt-MZ')}
+                      {cotacao.createdAt 
+                        ? new Date(cotacao.createdAt).toLocaleDateString('pt-MZ')
+                        : 'N/A'
+                      }
                     </td>
                     <td className="py-4 px-4 text-boho-brown">
-                      {cotacao.dataValidade 
-                        ? new Date(cotacao.dataValidade).toLocaleDateString('pt-MZ')
+                      {cotacao.dataExpiracao 
+                        ? new Date(cotacao.dataExpiracao).toLocaleDateString('pt-MZ')
                         : 'N/A'
                       }
                     </td>
                     <td className="py-4 px-4 text-right font-mono text-boho-coffee">
-                      MZN {(cotacao.totalPagar || 0).toLocaleString('pt-MZ')}
+                      MZN {(cotacao.total || 0).toLocaleString('pt-MZ')}
                     </td>
                     <td className="py-4 px-4 text-center">
-                      <FiscalBadge status={cotacao.estado} />
+                      <FiscalBadge status={cotacao.status} />
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <a
-                        href={`/quotes/${cotacao.id}`}
+                      <Link
+                        to={`/quotes/${cotacao.id}`}
                         className="p-2 hover:bg-boho-sand rounded-lg text-boho-taupe hover:text-boho-coffee transition-colors"
                       >
                         <MoreVertical size={18} />
-                      </a>
+                      </Link>
                     </td>
                   </tr>
                 ))

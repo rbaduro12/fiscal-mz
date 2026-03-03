@@ -4,7 +4,7 @@ import { FiscalCard } from '@/components/ui/fiscal-card'
 import { useState, useMemo } from 'react'
 import { useClientes } from '@/hooks/use-entidades'
 import { useArtigos } from '@/hooks/use-artigos'
-import { useCriarCotacao } from '@/hooks/use-documentos'
+import { useCreateQuote } from '@/hooks/use-quote-workflow'
 import { useCalculoIVA } from '@/hooks/use-fiscal'
 import type { Entidade, Artigo } from '@/types'
 
@@ -28,7 +28,7 @@ function NewQuotePage() {
   // Dados da API
   const { data: clientesData, isLoading: isLoadingClientes } = useClientes({ limit: 100 })
   const { data: artigosData, isLoading: isLoadingArtigos } = useArtigos({ limit: 100 })
-  const criarCotacao = useCriarCotacao()
+  const criarCotacao = useCreateQuote()
   
   // Estado do formulário
   const [entidadeId, setEntidadeId] = useState('')
@@ -123,12 +123,15 @@ function NewQuotePage() {
     
     try {
       await criarCotacao.mutateAsync({
-        entidadeId,
+        clienteId: entidadeId,
         itens: itens.map(i => ({
           artigoId: i.artigoId!,
+          codigo: '',
+          descricao: i.descricao,
           quantidade: i.quantidade,
           precoUnitario: i.precoUnitario,
-          descontoPercent: i.descontoPercent
+          desconto: i.descontoPercent,
+          taxaIva: i.ivaPercent
         })),
         validadeDias
       })

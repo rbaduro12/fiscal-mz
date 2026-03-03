@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft, Download, Printer, CheckCircle, XCircle, Send, Loader2, Building2, Calendar, FileText, Hash, CreditCard } from 'lucide-react'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { FiscalBadge } from '@/components/ui/fiscal-badge'
-import { useDocumento, useCotacaoWorkflow } from '@/hooks/use-documentos'
+import { useQuoteWorkflow } from '@/hooks/use-quote-workflow'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/quotes/$quoteId')({
@@ -15,13 +15,13 @@ function QuoteDetailPage() {
   const [showRejeitarModal, setShowRejeitarModal] = useState(false)
   const [motivoRejeicao, setMotivoRejeicao] = useState('')
   
-  const { data: documento, isLoading, isError } = useDocumento(quoteId)
   const { 
-    aceitarCotacao, 
-    rejeitarCotacao, 
-    isAccepting, 
-    isRejecting 
-  } = useCotacaoWorkflow(quoteId)
+    quote: cotacao, 
+    isLoading, 
+    isError,
+    acceptQuote,
+    isAccepting
+  } = useQuoteWorkflow(quoteId)
   
   if (isLoading) {
     return (
@@ -34,7 +34,7 @@ function QuoteDetailPage() {
     )
   }
   
-  if (isError || !documento) {
+  if (isError || !cotacao) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -47,11 +47,11 @@ function QuoteDetailPage() {
     )
   }
   
-  const cotacao = documento
+
   
   const handleAceitar = async () => {
     try {
-      await aceitarCotacao()
+      await acceptQuote()
       alert('Cotação aceita com sucesso!')
     } catch (error: any) {
       alert('Erro ao aceitar cotação: ' + error.message)
@@ -59,17 +59,12 @@ function QuoteDetailPage() {
   }
   
   const handleRejeitar = async () => {
-    try {
-      await rejeitarCotacao(motivoRejeicao)
-      setShowRejeitarModal(false)
-      alert('Cotação rejeitada.')
-    } catch (error: any) {
-      alert('Erro ao rejeitar cotação: ' + error.message)
-    }
+    alert('Funcionalidade de rejeição em desenvolvimento')
+    setShowRejeitarModal(false)
   }
   
-  const canAccept = cotacao.estado === 'EMITIDA'
-  const isProcessed = cotacao.estado === 'PROCESSADA' || cotacao.estado === 'ACEITE'
+  const canAccept = cotacao?.status === 'ENVIADA'
+  const isProcessed = cotacao?.status === 'CONVERTIDA' || cotacao?.status === 'ACEITE'
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -81,11 +76,11 @@ function QuoteDetailPage() {
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-boho-coffee">{cotacao.numeroCompleto}</h1>
-              <FiscalBadge status={cotacao.estado} />
+              <h1 className="text-3xl font-bold text-boho-coffee">{cotacao.numero}</h1>
+              <FiscalBadge status={cotacao.status} />
             </div>
             <p className="text-boho-brown mt-1">
-              Criada em {new Date(cotacao.dataEmissao).toLocaleDateString('pt-MZ')}
+              Criada em {new Date(cotacao.createdAt).toLocaleDateString('pt-MZ')}
             </p>
           </div>
         </div>
@@ -112,8 +107,8 @@ function QuoteDetailPage() {
                 <Building2 className="text-boho-accent" size={20} />
                 <h3 className="font-medium text-boho-coffee">Cliente</h3>
               </div>
-              <p className="text-lg font-medium text-boho-coffee">{cotacao.entidade?.nome || 'N/A'}</p>
-              <p className="text-sm text-boho-brown">NUIT: {cotacao.entidade?.nuit || 'N/A'}</p>
+              <p className="text-lg font-medium text-boho-coffee">Cliente #{cotacao.clienteId?.slice(0, 8) || 'N/A'}</p>
+              <p className="text-sm text-boho-brown">ID: {cotacao.clienteId || 'N/A'}</p>
             </FiscalCard>
             
             <FiscalCard>
@@ -122,13 +117,13 @@ function QuoteDetailPage() {
                 <h3 className="font-medium text-boho-coffee">Validade</h3>
               </div>
               <p className="text-lg font-medium text-boho-coffee">
-                {cotacao.dataValidade 
-                  ? new Date(cotacao.dataValidade).toLocaleDateString('pt-MZ')
+                {cotacao.dataExpiracao 
+                  ? new Date(cotacao.dataExpiracao).toLocaleDateString('pt-MZ')
                   : 'N/A'
                 }
               </p>
               <p className="text-sm text-boho-brown">
-                {cotacao.dataValidade && new Date(cotacao.dataValidade) < new Date() 
+                {cotacao.dataExpiracao && new Date(cotacao.dataExpiracao) < new Date() 
                   ? 'Expirada'
                   : 'Válida'
                 }
@@ -151,18 +146,18 @@ function QuoteDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {cotacao.linhas?.map((linha: any, index: number) => (
+                  {cotacao.itens?.map((item: any, index: number) => (
                     <tr key={index} className="border-b border-boho-beige/50">
-                      <td className="py-4 px-4 text-boho-coffee">{linha.descricao}</td>
-                      <td className="py-4 px-4 text-center text-boho-brown">{linha.quantidade}</td>
+                      <td className="py-4 px-4 text-boho-coffee">{item.descricao}</td>
+                      <td className="py-4 px-4 text-center text-boho-brown">{item.quantidade}</td>
                       <td className="py-4 px-4 text-right font-mono text-boho-coffee">
-                        MZN {linha.precoUnitario?.toLocaleString('pt-MZ')}
+                        MZN {item.precoUnitario?.toLocaleString('pt-MZ')}
                       </td>
                       <td className="py-4 px-4 text-right text-boho-brown">
-                        {linha.ivaPercent}%
+                        {item.taxaIva}%
                       </td>
                       <td className="py-4 px-4 text-right font-mono text-boho-coffee">
-                        MZN {linha.totalLinha?.toLocaleString('pt-MZ')}
+                        MZN {item.totalLinha?.toLocaleString('pt-MZ')}
                       </td>
                     </tr>
                   ))}
@@ -236,12 +231,6 @@ function QuoteDetailPage() {
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-boho-beige">
-                <span className="text-boho-brown">Descontos</span>
-                <span className="font-mono text-boho-coffee">
-                  MZN {cotacao.totalDescontos?.toLocaleString('pt-MZ', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-boho-beige">
                 <span className="text-boho-brown">IVA</span>
                 <span className="font-mono text-boho-coffee">
                   MZN {cotacao.totalIva?.toLocaleString('pt-MZ', { minimumFractionDigits: 2 })}
@@ -250,7 +239,7 @@ function QuoteDetailPage() {
               <div className="flex justify-between py-3">
                 <span className="text-boho-coffee font-medium">Total</span>
                 <span className="font-mono text-2xl font-bold text-boho-accent">
-                  MZN {cotacao.totalPagar?.toLocaleString('pt-MZ', { minimumFractionDigits: 2 })}
+                  MZN {cotacao.total?.toLocaleString('pt-MZ', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
@@ -276,14 +265,9 @@ function QuoteDetailPage() {
                 
                 <button
                   onClick={() => setShowRejeitarModal(true)}
-                  disabled={isRejecting}
                   className="w-full py-3 px-4 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  {isRejecting ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <XCircle size={20} />
-                  )}
+                  <XCircle size={20} />
                   Rejeitar
                 </button>
                 
@@ -332,13 +316,13 @@ function QuoteDetailPage() {
                   </p>
                 </div>
               </div>
-              {cotacao.estado !== 'RASCUNHO' && (
+              {cotacao.status !== 'RASCUNHO' && (
                 <div className="flex gap-3">
                   <div className="w-2 h-2 bg-boho-sage rounded-full mt-2" />
                   <div>
-                    <p className="text-sm font-medium text-boho-coffee">Emitida</p>
+                    <p className="text-sm font-medium text-boho-coffee">Enviada</p>
                     <p className="text-xs text-boho-brown">
-                      {new Date(cotacao.dataEmissao).toLocaleString('pt-MZ')}
+                      {new Date(cotacao.createdAt).toLocaleString('pt-MZ')}
                     </p>
                   </div>
                 </div>

@@ -1,15 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { api } from '@/lib/api'
+import { cotacoesService, type CriarCotacaoInput, type AceitarCotacaoInput } from '@/services/cotacoes.service'
 import { queryKeys } from '@/lib/query-client'
-import type { Cotacao, CriarCotacaoInput } from '@/types'
+import type { Cotacao } from '@/types'
 
-interface AceitarCotacaoInput {
-  notas?: string
-  prazoEntrega?: number
-}
-
-// Hook para gerenciar o workflow de cotações
+// Hook para gerenciar o workflow de cotações (CQRS)
 export function useQuoteWorkflow(cotacaoId?: string) {
   const queryClient = useQueryClient()
 
@@ -18,8 +13,7 @@ export function useQuoteWorkflow(cotacaoId?: string) {
     queryKey: cotacaoId ? queryKeys.cotacoes.detail(cotacaoId) : ['cotacao', 'none'],
     queryFn: async (): Promise<Cotacao> => {
       if (!cotacaoId) throw new Error('ID da cotação é obrigatório')
-      const { data } = await api.get(`/cotacoes/${cotacaoId}`)
-      return data.data
+      return cotacoesService.obter(cotacaoId)
     },
     enabled: !!cotacaoId,
   })
@@ -27,22 +21,18 @@ export function useQuoteWorkflow(cotacaoId?: string) {
   // Mutação para aceitar cotação (otimista)
   const acceptMutation = useMutation({
     mutationFn: async (input: AceitarCotacaoInput) => {
-      const { data } = await api.post(`/cotacoes/${cotacaoId}/aceitar`, input)
-      return data
+      if (!cotacaoId) throw new Error('ID da cotação é obrigatório')
+      return cotacoesService.aceitar(cotacaoId, input)
     },
-    // Otimistic update
     onMutate: async (_input) => {
-      // Cancela queries pendentes
       await queryClient.cancelQueries({ queryKey: queryKeys.cotacoes.detail(cotacaoId!) })
       
-      // Snapshot do estado anterior
       const previousQuote = queryClient.getQueryData<Cotacao>(queryKeys.cotacoes.detail(cotacaoId!))
       
-      // Atualiza otimisticamente
       if (previousQuote) {
         queryClient.setQueryData(queryKeys.cotacoes.detail(cotacaoId!), {
           ...previousQuote,
-          estado: 'ACEITE',
+          status: 'ACEITE',
           updatedAt: new Date().toISOString(),
         })
       }
@@ -50,24 +40,21 @@ export function useQuoteWorkflow(cotacaoId?: string) {
       return { previousQuote }
     },
     onError: (_err, _input, context) => {
-      // Rollback em caso de erro
       if (context?.previousQuote) {
         queryClient.setQueryData(queryKeys.cotacoes.detail(cotacaoId!), context.previousQuote)
       }
     },
     onSuccess: () => {
-      // Invalida e refetch
       queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.detail(cotacaoId!) })
       queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.all({}) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.proformas.all({}) })
     },
   })
 
-  // Mutação para rejeitar cotação
-  const rejectMutation = useMutation({
+  // Mutação para gerar proforma
+  const generateProformaMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await api.post(`/cotacoes/${cotacaoId}/rejeitar`)
-      return data
+      if (!cotacaoId) throw new Error('ID da cotação é obrigatório')
+      return cotacoesService.gerarProforma(cotacaoId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.detail(cotacaoId!) })
@@ -80,9 +67,9 @@ export function useQuoteWorkflow(cotacaoId?: string) {
     return acceptMutation.mutateAsync(input || {})
   }, [acceptMutation])
 
-  const rejectQuote = useCallback(() => {
-    return rejectMutation.mutateAsync()
-  }, [rejectMutation])
+  const generateProforma = useCallback(() => {
+    return generateProformaMutation.mutateAsync()
+  }, [generateProformaMutation])
 
   return {
     quote: quoteQuery.data,
@@ -91,10 +78,10 @@ export function useQuoteWorkflow(cotacaoId?: string) {
     error: quoteQuery.error,
     // Actions
     acceptQuote,
-    rejectQuote,
+    generateProforma,
     // States
     isAccepting: acceptMutation.isPending,
-    isRejecting: rejectMutation.isPending,
+    isGeneratingProforma: generateProformaMutation.isPending,
   }
 }
 
@@ -104,12 +91,8 @@ export function useCreateQuote() {
 
   return useMutation({
     mutationFn: async (input: CriarCotacaoInput) => {
-      const { data } = await api.post('/cotacoes', input, {
-        headers: {
-          'Idempotency-Key': `create-quote-${Date.now()}-${input.entidadeId}`,
-        },
-      })
-      return data
+      const idempotencyKey = `create-quote-${Date.now()}-${input.clienteId}`
+      return cotacoesService.criar(input, idempotencyKey)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.all({}) })
@@ -117,24 +100,54 @@ export function useCreateQuote() {
   })
 }
 
-// Hook para listar cotações enviadas
-export function useSentQuotes(filters?: { estado?: string; page?: number; limit?: number }) {
+// Hook para listar cotações enviadas (vendedor)
+export function useSentQuotes(filters?: { status?: string; page?: number; limit?: number }) {
   return useQuery({
     queryKey: queryKeys.cotacoes.all(filters),
     queryFn: async () => {
-      const { data } = await api.get('/cotacoes', { params: filters })
-      return data
+      return cotacoesService.listarEnviadas(filters)
     },
   })
 }
 
-// Hook para listar cotações recebidas
-export function useReceivedQuotes(filters?: { estado?: string; page?: number; limit?: number }) {
+// Hook para listar cotações recebidas (cliente)
+export function useReceivedQuotes(filters?: { status?: string; page?: number; limit?: number }) {
   return useQuery({
     queryKey: queryKeys.cotacoes.recebidas(filters),
     queryFn: async () => {
-      const { data } = await api.get('/cotacoes/recebidas', { params: filters })
-      return data
+      return cotacoesService.listarRecebidas(filters)
+    },
+  })
+}
+
+// Hook para iniciar pagamento
+export function useInitiatePayment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ 
+      proformaId, 
+      method, 
+      metadata 
+    }: { 
+      proformaId: string; 
+      method: 'MPESA' | 'CASH' | 'ESCROW' | 'CARTAO';
+      metadata?: any;
+    }) => {
+      return cotacoesService.iniciarPagamento(proformaId, method, metadata)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.proformas.all({}) })
+    },
+  })
+}
+
+// Hook para wallet
+export function useWalletBalance() {
+  return useQuery({
+    queryKey: ['wallet', 'balance'],
+    queryFn: async () => {
+      return cotacoesService.obterSaldoWallet()
     },
   })
 }
