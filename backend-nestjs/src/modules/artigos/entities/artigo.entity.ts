@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, AfterLoad } from 'typeorm';
 import { Empresa } from '../../empresas/entities/empresa.entity';
 import { Entidade } from '../../entidades/entities/entidade.entity';
 import { TipoOperacaoIVA } from '../../documentos/entities/documento.entity';
@@ -78,4 +78,23 @@ export class Artigo {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  // Campos virtuais para compatibilidade com frontend
+  precoUnitario: number;
+  ivaPercent: number;
+
+  @AfterLoad()
+  setVirtualFields() {
+    this.precoUnitario = this.precoVenda;
+    
+    // Mapear categoriaIva para percentual
+    const ivaMap: Record<string, number> = {
+      'TRIBUTAVEL_16': 16,
+      'TRIBUTAVEL_10': 10,
+      'TRIBUTAVEL_5': 5,
+      'ISENTO': 0,
+      'NAO_APLICAVEL': 0,
+    };
+    this.ivaPercent = ivaMap[this.categoriaIva] || 16;
+  }
 }
