@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 import { api } from '@/lib/api'
 import { queryKeys } from '@/lib/query-client'
-import type { Payment, PaymentMethod, Proforma } from '@/types'
+import type { Pagamento, MetodoPagamento, Proforma } from '@/types'
 
 interface InitiatePaymentInput {
   proformaId: string
-  method: PaymentMethod
+  method: MetodoPagamento
   telefone?: string
   metadata?: Record<string, any>
 }
@@ -26,7 +26,7 @@ export function usePayment(proformaId?: string) {
   // Query para status do pagamento
   const paymentStatusQuery = useQuery({
     queryKey: proformaId ? queryKeys.payments.status(proformaId) : ['payment', 'none'],
-    queryFn: async (): Promise<Payment | null> => {
+    queryFn: async (): Promise<Pagamento | null> => {
       if (!proformaId) return null
       const { data } = await api.get(`/proformas/${proformaId}/payment-status`)
       return data.data
@@ -206,9 +206,9 @@ export function useRealtimePayments() {
       
       if (data.type === 'PAYMENT_CONFIRMED') {
         // Invalidar queries relevantes
-        queryClient.invalidateQueries({ queryKey: queryKeys.proformas.all })
+        queryClient.invalidateQueries({ queryKey: queryKeys.proformas.all({}) })
         queryClient.invalidateQueries({ queryKey: queryKeys.payments.all })
-        queryClient.invalidateQueries({ queryKey: queryKeys.fiscal.invoices })
+        queryClient.invalidateQueries({ queryKey: queryKeys.faturas.all({}) })
         queryClient.invalidateQueries({ queryKey: queryKeys.wallet.balance })
       }
     }

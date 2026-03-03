@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { Plus, Search, Building2, Phone, Mail, MapPin, MoreVertical, Loader2 } from 'lucide-react'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { useClientes, useCriarEntidade } from '@/hooks/use-entidades'
+import type { Entidade } from '@/types'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/clients')({
@@ -23,7 +24,7 @@ function ClientsPage() {
     cidade: '',
   })
   
-  const clientes = data?.items || []
+  const clientes = data || []
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,13 +91,13 @@ function ClientsPage() {
         <div className="bg-white rounded-xl p-4 shadow-boho border border-boho-beige">
           <p className="text-boho-taupe text-sm">Ativos</p>
           <p className="text-2xl font-bold text-boho-sage">
-            {clientes.filter(c => c.ativo).length}
+            {clientes.filter((c: Entidade) => c.ativo).length}
           </p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-boho border border-boho-beige">
           <p className="text-boho-taupe text-sm">Com Email</p>
           <p className="text-2xl font-bold text-boho-accent">
-            {clientes.filter(c => c.email).length}
+            {clientes.filter((c: Entidade) => c.email).length}
           </p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-boho border border-boho-beige">
@@ -107,7 +108,7 @@ function ClientsPage() {
 
       {/* Clients Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clientes.map((cliente) => (
+        {clientes.map((cliente: Entidade) => (
           <FiscalCard key={cliente.id} className="hover:shadow-boho-lg transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">

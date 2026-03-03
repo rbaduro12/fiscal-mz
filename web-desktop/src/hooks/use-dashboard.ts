@@ -46,7 +46,7 @@ export function useDashboardResumo() {
     queryKey: queryKeys.dashboard.resumo,
     queryFn: async (): Promise<ResumoDashboard> => {
       const response = await dashboardService.obterResumo()
-      return response.data
+      return response
     },
     // Refresh a cada 5 minutos
     refetchInterval: 5 * 60 * 1000,
@@ -59,7 +59,7 @@ export function useDashboardFaturacao(periodo: '7d' | '30d' | '90d' | '1y' = '30
     queryKey: queryKeys.dashboard.faturacao(periodo),
     queryFn: async (): Promise<EstatisticasFaturacao> => {
       const response = await dashboardService.obterEstatisticasFaturacao(periodo)
-      return response.data
+      return response
     },
   })
 }
@@ -70,7 +70,7 @@ export function useDashboardAlertas() {
     queryKey: queryKeys.dashboard.alertas,
     queryFn: async (): Promise<Alerta[]> => {
       const response = await dashboardService.obterAlertas()
-      return response.data
+      return response
     },
     // Refresh a cada 2 minutos
     refetchInterval: 2 * 60 * 1000,

@@ -6,6 +6,7 @@ import { useClientes } from '@/hooks/use-entidades'
 import { useArtigos } from '@/hooks/use-artigos'
 import { useCriarCotacao } from '@/hooks/use-documentos'
 import { useCalculoIVA } from '@/hooks/use-fiscal'
+import type { Entidade, Artigo } from '@/types'
 
 export const Route = createFileRoute('/quotes/new')({
   component: NewQuotePage,
@@ -22,7 +23,7 @@ interface ItemCotacao {
 
 function NewQuotePage() {
   const navigate = useNavigate()
-  const { calcularIVA, calcularTotalComIVA } = useCalculoIVA()
+  const { calcularIVA } = useCalculoIVA()
   
   // Dados da API
   const { data: clientesData, isLoading: isLoadingClientes } = useClientes({ limit: 100 })
@@ -41,13 +42,13 @@ function NewQuotePage() {
   const [buscaCliente, setBuscaCliente] = useState('')
   const [buscaArtigo, setBuscaArtigo] = useState('')
   
-  const clientes = clientesData?.items || []
-  const artigos = artigosData?.items || []
+  const clientes = clientesData || []
+  const artigos = artigosData || []
   
   // Filtrar clientes
   const clientesFiltrados = useMemo(() => {
     if (!buscaCliente) return clientes.slice(0, 10)
-    return clientes.filter(c => 
+    return clientes.filter((c: Entidade) => 
       c.nome.toLowerCase().includes(buscaCliente.toLowerCase()) ||
       c.nuit?.includes(buscaCliente)
     ).slice(0, 10)
@@ -56,14 +57,14 @@ function NewQuotePage() {
   // Filtrar artigos
   const artigosFiltrados = useMemo(() => {
     if (!buscaArtigo) return artigos.slice(0, 10)
-    return artigos.filter(a => 
+    return artigos.filter((a: Artigo) => 
       a.descricao.toLowerCase().includes(buscaArtigo.toLowerCase()) ||
       a.codigo.toLowerCase().includes(buscaArtigo.toLowerCase())
     ).slice(0, 10)
   }, [artigos, buscaArtigo])
   
   // Cliente selecionado
-  const clienteSelecionado = clientes.find(c => c.id === entidadeId)
+  const clienteSelecionado = clientes.find((c: Entidade) => c.id === entidadeId)
   
   const addItem = () => {
     setItens([...itens, { descricao: '', quantidade: 1, precoUnitario: 0, descontoPercent: 0, ivaPercent: 16 }])
@@ -82,7 +83,7 @@ function NewQuotePage() {
   }
   
   const selecionarArtigo = (index: number, artigoId: string) => {
-    const artigo = artigos.find(a => a.id === artigoId)
+    const artigo = artigos.find((a: Artigo) => a.id === artigoId)
     if (artigo) {
       const newItens = [...itens]
       newItens[index] = {
@@ -185,7 +186,7 @@ function NewQuotePage() {
                 
                 {clientesFiltrados.length > 0 && (
                   <div className="border border-boho-beige rounded-lg overflow-hidden">
-                    {clientesFiltrados.map((cliente) => (
+                    {clientesFiltrados.map((cliente: Entidade) => (
                       <button
                         key={cliente.id}
                         onClick={() => {
@@ -211,9 +212,9 @@ function NewQuotePage() {
                 {buscaCliente && clientesFiltrados.length === 0 && (
                   <p className="text-sm text-boho-brown text-center py-4">
                     Nenhum cliente encontrado.{' '}
-                    <Link to="/clients/new" className="text-boho-accent hover:underline">
+                    <a href="/clients/new" className="text-boho-accent hover:underline">
                       Cadastrar novo cliente
-                    </Link>
+                    </a>
                   </p>
                 )}
               </div>
@@ -289,7 +290,7 @@ function NewQuotePage() {
                     
                     {buscaArtigo && artigosFiltrados.length > 0 && (
                       <div className="absolute z-10 w-full mt-1 bg-white border border-boho-beige rounded-lg shadow-lg max-h-48 overflow-auto">
-                        {artigosFiltrados.map((artigo) => (
+                        {artigosFiltrados.map((artigo: Artigo) => (
                           <button
                             key={artigo.id}
                             onClick={() => {

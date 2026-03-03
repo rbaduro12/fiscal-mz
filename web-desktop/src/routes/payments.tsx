@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { CreditCard, ArrowRight, Loader2, CheckCircle, Clock, AlertCircle, QrCode } from 'lucide-react'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { FiscalBadge } from '@/components/ui/fiscal-badge'
 import { useProformas } from '@/hooks/use-documentos'
+import type { Proforma } from '@/types'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/payments')({
@@ -25,9 +26,9 @@ function PaymentsPage() {
   const [valorPago, setValorPago] = useState('')
   const [processing, setProcessing] = useState(false)
   
-  const proformas = proformasData?.items || []
+  const proformas = proformasData || []
   
-  const proformaAtual = proformas.find(p => p.id === proformaSelecionada)
+  const proformaAtual = proformas.find((p: Proforma) => p.id === proformaSelecionada)
   
   const handlePagamento = async () => {
     if (!proformaSelecionada || !metodoSelecionado) return
@@ -71,7 +72,7 @@ function PaymentsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-boho-coffee">
-                    MZN {proformas.reduce((acc, p) => acc + (p.totalPagar || 0), 0).toLocaleString('pt-MZ')}
+                    MZN {proformas.reduce((acc: number, p: Proforma) => acc + (p.totalPagar || 0), 0).toLocaleString('pt-MZ')}
                   </p>
                   <p className="text-sm text-boho-brown">Total a pagar</p>
                 </div>
@@ -115,7 +116,7 @@ function PaymentsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {proformas.map((proforma) => (
+                {proformas.map((proforma: Proforma) => (
                   <div 
                     key={proforma.id}
                     className="p-4 border border-boho-beige rounded-xl hover:border-boho-accent transition-colors cursor-pointer"

@@ -1,8 +1,10 @@
 import { Outlet, createRootRoute, Link, useNavigate, useLocation } from '@tanstack/react-router'
 import { 
   Home, FileText, CreditCard, Settings, Plus, LogOut, 
-  LayoutDashboard, Users, Receipt, BarChart3, Bell, User
+  LayoutDashboard, Users, Receipt, BarChart3, User,
+  Package, Store, Box
 } from 'lucide-react'
+import { NotificacoesDropdown } from '@/components/notificacoes-dropdown'
 import { useAuth } from '@/contexts/auth-context'
 import { useEffect } from 'react'
 
@@ -67,6 +69,8 @@ function RootComponent() {
             <>
               <NavLink to="/admin/dashboard" icon={<Home size={20} />} label="Dashboard" />
               <NavLink to="/clients" icon={<Users size={20} />} label="Clientes" />
+              <NavLink to="/products" icon={<Package size={20} />} label="Produtos" />
+              <NavLink to="/stock" icon={<Box size={20} />} label="Stock" />
               <NavLink to="/quotes" icon={<FileText size={20} />} label="Cotações" />
               <NavLink to="/payments" icon={<CreditCard size={20} />} label="Pagamentos" />
               <NavLink to="/fiscal" icon={<Receipt size={20} />} label="Documentos Fiscais" />
@@ -76,6 +80,7 @@ function RootComponent() {
             // Client Navigation
             <>
               <NavLink to="/dashboard" icon={<Home size={20} />} label="Dashboard" />
+              <NavLink to="/products" icon={<Store size={20} />} label="Catálogo" />
               <NavLink to="/my-quotes" icon={<FileText size={20} />} label="Minhas Cotações" />
               <NavLink to="/my-payments" icon={<CreditCard size={20} />} label="Meus Pagamentos" />
               <NavLink to="/my-documents" icon={<Receipt size={20} />} label="Meus Documentos" />
@@ -95,18 +100,15 @@ function RootComponent() {
         <div className="p-6 border-t border-boho-beige">
           <div className="flex items-center gap-3 mb-4">
             <img 
-              src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name}&background=C67B5C&color=fff`}
-              alt={user?.name}
+              src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nome || '')}&background=C67B5C&color=fff`}
+              alt={user?.nome}
               className="w-12 h-12 rounded-full border-2 border-boho-beige"
             />
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-boho-coffee truncate">{user?.name}</p>
+              <p className="font-medium text-boho-coffee truncate">{user?.nome}</p>
               <p className="text-xs text-boho-brown truncate">{user?.email}</p>
             </div>
-            <button className="relative p-2 text-boho-taupe hover:text-boho-coffee transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-boho-terracotta rounded-full" />
-            </button>
+            <NotificacoesDropdown />
           </div>
           
           {isAdmin && (

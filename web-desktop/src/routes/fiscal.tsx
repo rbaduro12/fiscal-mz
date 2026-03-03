@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { FileText, AlertTriangle, CheckCircle, Clock, Download, RefreshCw, Loader2, Calculator, TrendingUp, TrendingDown } from 'lucide-react'
+import { FileText, AlertTriangle, CheckCircle, Download, Loader2, Calculator, TrendingUp, TrendingDown } from 'lucide-react'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { useState } from 'react'
-import { useDeclaracoesIVA, useGerarModeloA, useFiscalManager } from '@/hooks/use-fiscal'
+import { useDeclaracoesIVA, useGerarModeloA } from '@/hooks/use-fiscal'
 import { useFaturas } from '@/hooks/use-documentos'
 
 export const Route = createFileRoute('/fiscal')({
@@ -12,12 +12,12 @@ export const Route = createFileRoute('/fiscal')({
 function FiscalPage() {
   const [ano, setAno] = useState(new Date().getFullYear())
   const [mes, setMes] = useState(new Date().getMonth() + 1)
-  const { data: declaracoes, isLoading } = useDeclaracoesIVA({ ano, limit: 12 })
-  const { data: faturas } = useFaturas({ limit: 5 })
+  const { data: declaracoes, isLoading } = useDeclaracoesIVA({ ano })
+  const { data: faturas } = useFaturas()
   const gerarMutation = useGerarModeloA()
   
   // Declaração do período selecionado
-  const declaracaoAtual = declaracoes?.items?.find((d: any) => d.periodoMes === mes && d.periodoAno === ano)
+  const declaracaoAtual = declaracoes?.find((d: any) => d.periodoMes === mes && d.periodoAno === ano)
 
   const handleGerarModeloA = async () => {
     try {
@@ -322,7 +322,7 @@ function FiscalPage() {
               </tr>
             </thead>
             <tbody>
-              {faturas?.items?.map((fatura: any) => (
+              {faturas?.map((fatura: any) => (
                 <tr key={fatura.id} className="border-b border-boho-beige/50 hover:bg-boho-sand/30">
                   <td className="py-4 px-4">
                     <span className="font-mono text-boho-accent font-medium">{fatura.numeroCompleto}</span>

@@ -11,12 +11,18 @@ export enum MetodoPagamento {
   CARTAO = 'CARTAO',
   TRANSFERENCIA = 'TRANSFERENCIA',
   CHEQUE = 'CHEQUE',
+  ESCROW = 'ESCROW',
 }
 
 export enum EstadoPagamento {
   PENDENTE = 'PENDENTE',
+  PROCESSANDO = 'PROCESSANDO',
+  PENDENTE_CONFIRMACAO = 'PENDENTE_CONFIRMACAO',
+  PENDENTE_ESCROW = 'PENDENTE_ESCROW',
+  CONCLUIDO = 'CONCLUIDO',
   CONFIRMADO = 'CONFIRMADO',
   REJEITADO = 'REJEITADO',
+  FALHADO = 'FALHADO',
 }
 
 @Entity('pagamentos')
@@ -53,11 +59,23 @@ export class Pagamento {
   @Column({ type: 'date', nullable: true, name: 'data_compensacao' })
   dataCompensacao: Date;
 
+  @Column({ type: 'timestamp', nullable: true, name: 'data_confirmacao' })
+  dataConfirmacao: Date;
+
+  @Column({ length: 255, nullable: true })
+  referencia: string;
+
   @Column({ length: 255, nullable: true, name: 'referencia_externa' })
   referenciaExterna: string;
 
   @Column({ type: 'text', nullable: true, name: 'comprovativo_url' })
   comprovativoUrl: string;
+
+  @Column({ type: 'jsonb', nullable: true, name: 'metadados_gateway' })
+  metadadosGateway: Record<string, any>;
+
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, any>;
 
   @Column({
     type: 'enum',

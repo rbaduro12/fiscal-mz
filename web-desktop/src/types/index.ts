@@ -38,13 +38,16 @@ export interface Artigo {
   id: string
   codigo: string
   descricao: string
+  tipo: 'PRODUTO' | 'SERVICO'
   precoUnitario: number
   ivaPercent: number
-  stock: number
+  stockAtual: number
+  stockMinimo?: number
+  stockMaximo?: number
   categoria?: string
   ativo: boolean
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
 }
 
 // ============================================

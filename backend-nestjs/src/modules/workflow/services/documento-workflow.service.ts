@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, forwardRef, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Documento, TipoDocumento, EstadoDocumento } from '../../documentos/entities/documento.entity';
 import { LinhaDocumento } from '../../documentos/entities/linha-documento.entity';
 import { Notificacao, TipoNotificacao } from '../../notificacoes/entities/notificacao.entity';
+import { WorkflowIntegracaoService } from './workflow-integracao.service';
 
 // DTOs
 export interface CriarCotacaoDTO {
@@ -36,6 +37,7 @@ export class DocumentoWorkflowService {
     @InjectRepository(Notificacao)
     private notificacaoRepo: Repository<Notificacao>,
     private dataSource: DataSource,
+    private integracaoService: WorkflowIntegracaoService,
   ) {}
 
   /**
@@ -100,6 +102,15 @@ export class DocumentoWorkflowService {
       }, queryRunner.manager);
 
       await queryRunner.commitTransaction();
+      
+      // Notificar via WebSocket em tempo real
+      await this.integracaoService.enviarMensagemB2B(
+        empresaId,
+        dados.entidadeId,
+        'Nova Cotação Recebida',
+        `Cotação ${cotacaoSalva.numeroCompleto} no valor de ${totais.totalPagar.toLocaleString('pt-MZ')} MZN`,
+        cotacaoSalva.id,
+      );
       
       return this.documentoRepo.findOne({
         where: { id: cotacaoSalva.id },
@@ -205,6 +216,17 @@ export class DocumentoWorkflowService {
       }, queryRunner.manager);
 
       await queryRunner.commitTransaction();
+      
+      // Notificar via WebSocket sobre cotação aceita
+      const cotacaoComLinhas = await this.documentoRepo.findOne({
+        where: { id: cotacaoId },
+        relations: ['linhas'],
+      });
+      
+      if (cotacaoComLinhas) {
+        await this.integracaoService.onCotacaoAceita(cotacaoComLinhas, empresaClienteId, cotacao.utilizadorId);
+      }
+      
       return proformaSalva;
 
     } catch (error) {
@@ -334,6 +356,19 @@ export class DocumentoWorkflowService {
       }, queryRunner.manager);
 
       await queryRunner.commitTransaction();
+
+      // Notificar via WebSocket sobre pagamento confirmado
+      await this.integracaoService.onProformaPaga(proforma, empresaId);
+      
+      // Notificar sobre fatura emitida e movimentar stock
+      const facturaComLinhas = await this.documentoRepo.findOne({
+        where: { id: facturaSalva.id },
+        relations: ['linhas', 'entidade'],
+      });
+      
+      if (facturaComLinhas) {
+        await this.integracaoService.onFacturaEmitida(facturaComLinhas, empresaId, dadosPagamento.utilizadorId);
+      }
 
       return { factura: facturaSalva, recibo: reciboSalvo };
 

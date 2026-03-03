@@ -106,12 +106,12 @@ function LoginPage() {
                 />
                 Lembrar-me
               </label>
-              <Link
-                to="/forgot-password"
+              <a
+                href="/forgot-password"
                 className="text-sm text-boho-terracotta hover:text-boho-coffee transition-colors"
               >
                 Esqueceu a senha?
-              </Link>
+              </a>
             </div>
 
             <button
@@ -142,11 +142,47 @@ function LoginPage() {
             </p>
           </div>
 
-          {/* Credenciais de teste */}
-          <div className="mt-4 p-3 bg-boho-sand/50 rounded-lg text-xs text-boho-brown">
-            <p className="font-medium mb-1">Credenciais de teste:</p>
-            <p>Admin: admin@fiscal.mz / password123</p>
-            <p>Cliente: abc@comercial.co.mz / password123</p>
+          {/* Credenciais de teste - Base de Dados */}
+          <div className="mt-4 p-3 bg-boho-sand/50 rounded-lg">
+            <p className="text-xs font-medium text-boho-brown mb-2">Credenciais de teste (DB):</p>
+            <div className="space-y-1.5 text-xs text-boho-brown/80">
+              <div className="flex justify-between items-center">
+                <span className="font-mono bg-boho-cream px-1 rounded">admin@abc.co.mz</span>
+                <span className="font-mono text-boho-accent">admin123</span>
+                <span className="text-[10px] bg-boho-terracotta/10 px-1 rounded">ADMIN</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-mono bg-boho-cream px-1 rounded">vendedor@abc.co.mz</span>
+                <span className="font-mono text-boho-accent">vendedor123</span>
+                <span className="text-[10px] bg-boho-sage/10 px-1 rounded">VENDEDOR</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-mono bg-boho-cream px-1 rounded">admin@xyz.co.mz</span>
+                <span className="font-mono text-boho-accent">admin123</span>
+                <span className="text-[10px] bg-boho-terracotta/10 px-1 rounded">ADMIN</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-mono bg-boho-cream px-1 rounded">contabilista@xyz.co.mz</span>
+                <span className="font-mono text-boho-accent">conta123</span>
+                <span className="text-[10px] bg-boho-mustard/10 px-1 rounded">CONTABILISTA</span>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ email: 'admin@abc.co.mz', password: 'admin123', remember: false })}
+                className="py-1.5 text-xs bg-boho-accent/10 hover:bg-boho-accent/20 text-boho-accent rounded transition-colors"
+              >
+                👆 Admin ABC
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ email: 'vendedor@abc.co.mz', password: 'vendedor123', remember: false })}
+                className="py-1.5 text-xs bg-boho-sage/10 hover:bg-boho-sage/20 text-boho-sage rounded transition-colors"
+              >
+                👆 Vendedor
+              </button>
+            </div>
           </div>
         </FiscalCard>
 

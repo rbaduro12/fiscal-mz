@@ -2,42 +2,47 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { api } from '@/lib/api'
 import { queryKeys } from '@/lib/query-client'
-import type { Quote, CreateQuoteInput, AcceptQuoteInput } from '@/types'
+import type { Cotacao, CriarCotacaoInput } from '@/types'
+
+interface AceitarCotacaoInput {
+  notas?: string
+  prazoEntrega?: number
+}
 
 // Hook para gerenciar o workflow de cotações
-export function useQuoteWorkflow(quoteId?: string) {
+export function useQuoteWorkflow(cotacaoId?: string) {
   const queryClient = useQueryClient()
 
   // Query para buscar detalhes da cotação
   const quoteQuery = useQuery({
-    queryKey: quoteId ? queryKeys.quotes.detail(quoteId) : ['quote', 'none'],
-    queryFn: async (): Promise<Quote> => {
-      if (!quoteId) throw new Error('Quote ID is required')
-      const { data } = await api.get(`/quotes/${quoteId}`)
+    queryKey: cotacaoId ? queryKeys.cotacoes.detail(cotacaoId) : ['cotacao', 'none'],
+    queryFn: async (): Promise<Cotacao> => {
+      if (!cotacaoId) throw new Error('ID da cotação é obrigatório')
+      const { data } = await api.get(`/cotacoes/${cotacaoId}`)
       return data.data
     },
-    enabled: !!quoteId,
+    enabled: !!cotacaoId,
   })
 
   // Mutação para aceitar cotação (otimista)
   const acceptMutation = useMutation({
-    mutationFn: async (input: AcceptQuoteInput) => {
-      const { data } = await api.patch(`/quotes/${quoteId}/accept`, input)
+    mutationFn: async (input: AceitarCotacaoInput) => {
+      const { data } = await api.post(`/cotacoes/${cotacaoId}/aceitar`, input)
       return data
     },
     // Otimistic update
     onMutate: async (_input) => {
       // Cancela queries pendentes
-      await queryClient.cancelQueries({ queryKey: queryKeys.quotes.detail(quoteId!) })
+      await queryClient.cancelQueries({ queryKey: queryKeys.cotacoes.detail(cotacaoId!) })
       
       // Snapshot do estado anterior
-      const previousQuote = queryClient.getQueryData<Quote>(queryKeys.quotes.detail(quoteId!))
+      const previousQuote = queryClient.getQueryData<Cotacao>(queryKeys.cotacoes.detail(cotacaoId!))
       
       // Atualiza otimisticamente
       if (previousQuote) {
-        queryClient.setQueryData(queryKeys.quotes.detail(quoteId!), {
+        queryClient.setQueryData(queryKeys.cotacoes.detail(cotacaoId!), {
           ...previousQuote,
-          status: 'ACEITE',
+          estado: 'ACEITE',
           updatedAt: new Date().toISOString(),
         })
       }
@@ -47,87 +52,37 @@ export function useQuoteWorkflow(quoteId?: string) {
     onError: (_err, _input, context) => {
       // Rollback em caso de erro
       if (context?.previousQuote) {
-        queryClient.setQueryData(queryKeys.quotes.detail(quoteId!), context.previousQuote)
+        queryClient.setQueryData(queryKeys.cotacoes.detail(cotacaoId!), context.previousQuote)
       }
     },
     onSuccess: () => {
       // Invalida e refetch
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.detail(quoteId!) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.sent() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.proformas.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.detail(cotacaoId!) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.all({}) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.proformas.all({}) })
     },
   })
 
   // Mutação para rejeitar cotação
   const rejectMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await api.patch(`/quotes/${quoteId}/reject`)
+      const { data } = await api.post(`/cotacoes/${cotacaoId}/rejeitar`)
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.detail(quoteId!) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.sent() })
-    },
-  })
-
-  // Mutação para contra-proposta
-  const counterOfferMutation = useMutation({
-    mutationFn: async (input: AcceptQuoteInput) => {
-      const { data } = await api.patch(`/quotes/${quoteId}/counter-offer`, input)
-      return data
-    },
-    onMutate: async (_input) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.quotes.detail(quoteId!) })
-      const previousQuote = queryClient.getQueryData<Quote>(queryKeys.quotes.detail(quoteId!))
-      
-      if (previousQuote) {
-        queryClient.setQueryData(queryKeys.quotes.detail(quoteId!), {
-          ...previousQuote,
-          status: 'NEGOCIANDO',
-          updatedAt: new Date().toISOString(),
-        })
-      }
-      
-      return { previousQuote }
-    },
-    onError: (_err, _input, context) => {
-      if (context?.previousQuote) {
-        queryClient.setQueryData(queryKeys.quotes.detail(quoteId!), context.previousQuote)
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.detail(quoteId!) })
-    },
-  })
-
-  // Mutação para enviar cotação
-  const sendMutation = useMutation({
-    mutationFn: async () => {
-      const { data } = await api.post(`/quotes/${quoteId}/send`)
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.detail(quoteId!) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.sent() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.detail(cotacaoId!) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.all({}) })
     },
   })
 
   // Actions memoizadas
-  const acceptQuote = useCallback((input?: AcceptQuoteInput) => {
+  const acceptQuote = useCallback((input?: AceitarCotacaoInput) => {
     return acceptMutation.mutateAsync(input || {})
   }, [acceptMutation])
 
   const rejectQuote = useCallback(() => {
     return rejectMutation.mutateAsync()
   }, [rejectMutation])
-
-  const counterOffer = useCallback((input: AcceptQuoteInput) => {
-    return counterOfferMutation.mutateAsync(input)
-  }, [counterOfferMutation])
-
-  const sendQuote = useCallback(() => {
-    return sendMutation.mutateAsync()
-  }, [sendMutation])
 
   return {
     quote: quoteQuery.data,
@@ -137,13 +92,9 @@ export function useQuoteWorkflow(quoteId?: string) {
     // Actions
     acceptQuote,
     rejectQuote,
-    counterOffer,
-    sendQuote,
     // States
     isAccepting: acceptMutation.isPending,
     isRejecting: rejectMutation.isPending,
-    isCounterOffering: counterOfferMutation.isPending,
-    isSending: sendMutation.isPending,
   }
 }
 
@@ -152,37 +103,37 @@ export function useCreateQuote() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: CreateQuoteInput) => {
-      const { data } = await api.post('/quotes', input, {
+    mutationFn: async (input: CriarCotacaoInput) => {
+      const { data } = await api.post('/cotacoes', input, {
         headers: {
-          'Idempotency-Key': `create-quote-${Date.now()}-${input.clientId}`,
+          'Idempotency-Key': `create-quote-${Date.now()}-${input.entidadeId}`,
         },
       })
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.quotes.sent() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.all({}) })
     },
   })
 }
 
 // Hook para listar cotações enviadas
-export function useSentQuotes(filters?: { status?: string; page?: number; limit?: number }) {
+export function useSentQuotes(filters?: { estado?: string; page?: number; limit?: number }) {
   return useQuery({
-    queryKey: queryKeys.quotes.sent(filters),
+    queryKey: queryKeys.cotacoes.all(filters),
     queryFn: async () => {
-      const { data } = await api.get('/quotes/sent', { params: filters })
+      const { data } = await api.get('/cotacoes', { params: filters })
       return data
     },
   })
 }
 
 // Hook para listar cotações recebidas
-export function useReceivedQuotes(filters?: { status?: string; page?: number; limit?: number }) {
+export function useReceivedQuotes(filters?: { estado?: string; page?: number; limit?: number }) {
   return useQuery({
-    queryKey: queryKeys.quotes.received(filters),
+    queryKey: queryKeys.cotacoes.recebidas(filters),
     queryFn: async () => {
-      const { data } = await api.get('/quotes/received', { params: filters })
+      const { data } = await api.get('/cotacoes/recebidas', { params: filters })
       return data
     },
   })

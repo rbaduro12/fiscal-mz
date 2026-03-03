@@ -14,6 +14,9 @@ import { MovimentoStock } from './modules/stock/entities/movimento-stock.entity'
 import { Pagamento } from './modules/payments/entities/pagamento.entity';
 import { Notificacao } from './modules/notificacoes/entities/notificacao.entity';
 import { DeclaracaoIVA } from './modules/fiscal/entities/declaracao-iva.entity';
+import { Cotacao } from './modules/cotacoes/entities/cotacao.entity';
+import { ItemCotacao } from './modules/cotacoes/entities/item-cotacao.entity';
+import { EventStore } from './modules/cotacoes/entities/event-store.entity';
 
 // Módulos
 import { AuthModule } from './modules/auth/auth.module';
@@ -29,6 +32,8 @@ import { WorkflowModule } from './modules/workflow/workflow.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { FiscalModule } from './modules/fiscal/fiscal.module';
 import { EmailModule } from './modules/email/email.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CotacoesModule } from './modules/cotacoes/cotacoes.module';
 
 @Module({
   imports: [
@@ -62,6 +67,9 @@ import { EmailModule } from './modules/email/email.module';
           Pagamento,
           Notificacao,
           DeclaracaoIVA,
+          Cotacao,
+          ItemCotacao,
+          EventStore,
         ],
         
         // Sincronização (DESATIVAR EM PRODUÇÃO - usar migrations)
@@ -93,6 +101,8 @@ import { EmailModule } from './modules/email/email.module';
     SeedModule,
     FiscalModule,
     EmailModule,
+    DashboardModule,
+    CotacoesModule,
   ],
 })
 export class AppModule {}

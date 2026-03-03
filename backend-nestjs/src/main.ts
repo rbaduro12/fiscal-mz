@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppModule } from './app.module';
 import { setupSwagger } from './config/swagger.config';
 
@@ -12,6 +13,8 @@ async function bootstrap() {
   app.enableCors({
     origin: configService.get('CORS_ORIGIN', '*'),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   // API Versioning
@@ -19,6 +22,9 @@ async function bootstrap() {
     type: VersioningType.URI,
     defaultVersion: '1',
   });
+
+  // WebSocket Adapter
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   // Validation
   app.useGlobalPipes(new ValidationPipe({
@@ -32,6 +38,9 @@ async function bootstrap() {
 
   // Setup Swagger/OpenAPI
   setupSwagger(app);
+
+  // Set global prefix (remove /v1 for non-versioned routes if needed)
+  // app.setGlobalPrefix('v1');
 
   const port = configService.get('PORT', 3000);
   await app.listen(port);

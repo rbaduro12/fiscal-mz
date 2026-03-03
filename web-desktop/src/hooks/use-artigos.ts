@@ -11,13 +11,16 @@ export interface Artigo {
   id: string
   codigo: string
   descricao: string
+  tipo: 'PRODUTO' | 'SERVICO'
   precoUnitario: number
   ivaPercent: number
-  stock: number
+  stockAtual: number
+  stockMinimo?: number
+  stockMaximo?: number
   categoria?: string
   ativo: boolean
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
 }
 
 export interface CriarArtigoInput {
@@ -52,9 +55,37 @@ export function useArtigos(params?: {
     queryKey: queryKeys.artigos.all(params),
     queryFn: async () => {
       const response = await artigosService.listar(params)
-      return response.data
+      return response
     },
   })
+}
+
+// Listar apenas produtos (tipo PRODUTO) da empresa atual
+export function useProdutos(params?: {
+  page?: number
+  limit?: number
+  search?: string
+}) {
+  const { data: artigos, ...rest } = useArtigos(params)
+  
+  // Filtrar apenas produtos
+  const produtos = artigos?.filter((a: Artigo) => a.tipo === 'PRODUTO') || []
+  
+  return { data: produtos, ...rest }
+}
+
+// Listar apenas serviços (tipo SERVICO) da empresa atual
+export function useServicos(params?: {
+  page?: number
+  limit?: number
+  search?: string
+}) {
+  const { data: artigos, ...rest } = useArtigos(params)
+  
+  // Filtrar apenas serviços
+  const servicos = artigos?.filter((a: Artigo) => a.tipo === 'SERVICO') || []
+  
+  return { data: servicos, ...rest }
 }
 
 // Obter detalhes de um artigo
@@ -64,7 +95,7 @@ export function useArtigo(id?: string) {
     queryFn: async (): Promise<Artigo> => {
       if (!id) throw new Error('ID do artigo é obrigatório')
       const response = await artigosService.obter(id)
-      return response.data
+      return response
     },
     enabled: !!id,
   })
@@ -77,7 +108,7 @@ export function useStockArtigo(id?: string) {
     queryFn: async () => {
       if (!id) throw new Error('ID do artigo é obrigatório')
       const response = await artigosService.obterStock(id)
-      return response.data
+      return response
     },
     enabled: !!id,
   })
@@ -90,7 +121,7 @@ export function useCriarArtigo() {
   return useMutation({
     mutationFn: async (input: CriarArtigoInput) => {
       const response = await artigosService.criar(input)
-      return response.data
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.artigos.all() })
@@ -105,7 +136,7 @@ export function useAtualizarArtigo() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: AtualizarArtigoInput }) => {
       const response = await artigosService.atualizar(id, data)
-      return response.data
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.artigos.detail(variables.id) })
@@ -116,8 +147,6 @@ export function useAtualizarArtigo() {
 
 // Hook completo para gerenciamento de artigos
 export function useArtigoManager(artigoId?: string) {
-  const queryClient = useQueryClient()
-  
   const artigoQuery = useArtigo(artigoId)
   const stockQuery = useStockArtigo(artigoId)
   const criarMutation = useCriarArtigo()

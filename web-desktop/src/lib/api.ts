@@ -251,6 +251,15 @@ export const documentosService = {
     return data
   },
   
+  // Atualizar documento
+  atualizar: async (id: string, documentoData: Partial<{
+    estado: string
+    observacoes: string
+  }>) => {
+    const { data } = await api.patch(`/documentos/${id}`, documentoData)
+    return data
+  },
+  
   // Proformas
   processarPagamento: async (proformaId: string, dadosPagamento: {
     metodo: 'CASH' | 'MPESA' | 'EMOLA' | 'BIM' | 'CARTAO'

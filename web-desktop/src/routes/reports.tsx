@@ -15,7 +15,7 @@ function ReportsPage() {
   
   const { data: faturacaoData, isLoading: isLoadingFaturacao } = useDashboardFaturacao(periodo)
   const { data: resumoData, isLoading: isLoadingResumo } = useDashboardResumo()
-  const { data: declaracoesData, isLoading: isLoadingDeclaracoes } = useDeclaracoesIVA({ ano, limit: 12 })
+  const { data: declaracoesData, isLoading: isLoadingDeclaracoes } = useDeclaracoesIVA({ ano })
   
   const isLoading = isLoadingFaturacao || isLoadingResumo || isLoadingDeclaracoes
   
@@ -162,7 +162,7 @@ function ReportsPage() {
           </div>
           
           <div className="space-y-3">
-            {declaracoesData?.items?.slice(0, 6).map((declaracao: any) => {
+            {declaracoesData?.slice(0, 6).map((declaracao: any) => {
               const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
               return (
                 <div key={declaracao.id} className="flex items-center justify-between p-3 bg-boho-sand/30 rounded-lg">

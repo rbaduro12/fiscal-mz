@@ -76,7 +76,7 @@ export function useDocumentos(params?: {
     queryKey: queryKeys.documentos.all(params),
     queryFn: async () => {
       const response = await documentosService.listar(params)
-      return response.data
+      return response
     },
   })
 }
@@ -88,7 +88,7 @@ export function useDocumento(id?: string) {
     queryFn: async (): Promise<Documento> => {
       if (!id) throw new Error('ID do documento é obrigatório')
       const response = await documentosService.obter(id)
-      return response.data
+      return response
     },
     enabled: !!id,
   })
@@ -97,6 +97,32 @@ export function useDocumento(id?: string) {
 // ============================================
 // WORKFLOW DE COTAÇÕES
 // ============================================
+
+// Hook standalone para criar cotação (usado em páginas de criação)
+export function useCriarCotacao() {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: async (input: CriarCotacaoInput) => {
+      const response = await documentosService.criarCotacao(input)
+      return response
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.documentos.all({ tipo: 'COTACAO' }) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cotacoes.all() })
+    },
+  })
+
+  return {
+    mutateAsync: mutation.mutateAsync,
+    mutate: mutation.mutate,
+    isPending: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+    isSuccess: mutation.isSuccess,
+    reset: mutation.reset,
+  }
+}
 
 export function useCotacaoWorkflow(cotacaoId?: string) {
   const queryClient = useQueryClient()
@@ -108,7 +134,7 @@ export function useCotacaoWorkflow(cotacaoId?: string) {
   const criarMutation = useMutation({
     mutationFn: async (input: CriarCotacaoInput) => {
       const response = await documentosService.criarCotacao(input)
-      return response.data
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.documentos.all({ tipo: 'COTACAO' }) })
@@ -120,7 +146,7 @@ export function useCotacaoWorkflow(cotacaoId?: string) {
     mutationFn: async (dadosPagamento?: DadosPagamentoInput) => {
       if (!cotacaoId) throw new Error('ID da cotação é obrigatório')
       const response = await documentosService.aceitarCotacao(cotacaoId, dadosPagamento)
-      return response.data
+      return response
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: queryKeys.documentos.detail(cotacaoId!) })
@@ -149,11 +175,11 @@ export function useCotacaoWorkflow(cotacaoId?: string) {
 
   // Mutação para rejeitar cotação
   const rejeitarMutation = useMutation({
-    mutationFn: async (motivo?: string) => {
+    mutationFn: async (observacoes?: string) => {
       if (!cotacaoId) throw new Error('ID da cotação é obrigatório')
       // Implementar endpoint de rejeição no backend
-      const response = await documentosService.atualizar(cotacaoId, { estado: 'REJEITADA', motivo })
-      return response.data
+      const response = await documentosService.atualizar(cotacaoId, { estado: 'REJEITADA', observacoes })
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.documentos.detail(cotacaoId!) })
@@ -202,7 +228,7 @@ export function usePagamento(proformaId?: string) {
     queryFn: async () => {
       if (!proformaId) return null
       const response = await documentosService.obter(proformaId)
-      return response.data
+      return response
     },
     enabled: !!proformaId,
     refetchInterval: (query) => {
@@ -220,7 +246,7 @@ export function usePagamento(proformaId?: string) {
     mutationFn: async (dadosPagamento: DadosPagamentoInput) => {
       if (!proformaId) throw new Error('ID da proforma é obrigatório')
       const response = await documentosService.processarPagamento(proformaId, dadosPagamento)
-      return response.data
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payments.status(proformaId!) })
@@ -252,7 +278,7 @@ export function useCotacoes(params?: { estado?: string; page?: number; limit?: n
     queryKey: queryKeys.cotacoes.all(params),
     queryFn: async () => {
       const response = await documentosService.listar({ tipo: 'COTACAO', ...params })
-      return response.data
+      return response
     },
   })
 }
@@ -262,7 +288,7 @@ export function useProformas(params?: { estado?: string; page?: number; limit?: 
     queryKey: queryKeys.proformas.all(params),
     queryFn: async () => {
       const response = await documentosService.listar({ tipo: 'PROFORMA', ...params })
-      return response.data
+      return response
     },
   })
 }
@@ -272,7 +298,7 @@ export function useFaturas(params?: { estado?: string; page?: number; limit?: nu
     queryKey: queryKeys.faturas.all(params),
     queryFn: async () => {
       const response = await documentosService.listar({ tipo: 'FACTURA', ...params })
-      return response.data
+      return response
     },
   })
 }

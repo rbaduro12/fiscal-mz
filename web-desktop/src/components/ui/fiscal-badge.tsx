@@ -49,7 +49,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
   NAO_VALIDADA: { label: 'Não Validada', classes: 'bg-boho-mustard/10 text-boho-mustard border-boho-mustard/20' },
   SUBMETIDA: { label: 'Submetida', classes: 'bg-blue-50 text-blue-600 border-blue-200' },
   VALIDADA: { label: 'Validada', classes: 'bg-boho-sage/10 text-boho-sage border-boho-sage/20' },
-  REJEITADA: { label: 'Rejeitada', classes: 'bg-red-50 text-red-600 border-red-200' },
+  // REJEITADA já definida acima (Documentos)
   
   // Estados Genéricos
   ATIVO: { label: 'Ativo', classes: 'bg-boho-sage/10 text-boho-sage border-boho-sage/20' },

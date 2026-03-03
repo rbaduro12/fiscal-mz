@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { fiscalService, downloadBlob } from '@/lib/api'
+import { fiscalService } from '@/lib/api'
 import { queryKeys } from '@/lib/query-client'
 
 // ============================================
@@ -78,7 +78,7 @@ export function useDeclaracoesIVA(params?: {
     queryKey: queryKeys.fiscal.declaracoes(params),
     queryFn: async () => {
       const response = await fiscalService.listarDeclaracoes(params)
-      return response.data
+      return response
     },
   })
 }
@@ -90,7 +90,7 @@ export function useDeclaracaoIVA(id?: string) {
     queryFn: async (): Promise<DeclaracaoIVA> => {
       if (!id) throw new Error('ID da declaração é obrigatório')
       const response = await fiscalService.obterDeclaracao(id)
-      return response.data
+      return response
     },
     enabled: !!id,
   })
@@ -103,7 +103,7 @@ export function useGerarModeloA() {
   return useMutation({
     mutationFn: async ({ ano, mes }: { ano: number; mes: number }) => {
       const response = await fiscalService.gerarModeloA(ano, mes)
-      return response.data
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fiscal.declaracoes() })
@@ -119,7 +119,7 @@ export function useSubmeterDeclaracao() {
   return useMutation({
     mutationFn: async (id: string) => {
       const response = await fiscalService.submeter(id)
-      return response.data
+      return response
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.fiscal.declaracao(id) })
@@ -164,8 +164,6 @@ export function useExportarPDF() {
 
 // Hook completo para gerenciamento fiscal
 export function useFiscalManager(declaracaoId?: string) {
-  const queryClient = useQueryClient()
-  
   const declaracaoQuery = useDeclaracaoIVA(declaracaoId)
   const gerarMutation = useGerarModeloA()
   const submeterMutation = useSubmeterDeclaracao()

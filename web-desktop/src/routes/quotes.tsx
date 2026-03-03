@@ -30,7 +30,7 @@ function QuotesPage() {
     limit,
   })
 
-  const cotacoes = data?.items || []
+  const cotacoes = data || []
   const total = data?.total || 0
   const totalPages = Math.ceil(total / limit)
 
@@ -172,12 +172,12 @@ function QuotesPage() {
                 cotacoes.map((cotacao: any) => (
                   <tr key={cotacao.id} className="border-b border-boho-beige/50 hover:bg-boho-sand/30 transition-colors">
                     <td className="py-4 px-4">
-                      <Link
-                        to={`/quotes/${cotacao.id}`}
+                      <a
+                        href={`/quotes/${cotacao.id}`}
                         className="text-boho-accent font-mono font-medium hover:underline"
                       >
                         {cotacao.numeroCompleto}
-                      </Link>
+                      </a>
                     </td>
                     <td className="py-4 px-4 text-boho-coffee">
                       {cotacao.entidade?.nome || 'Cliente não identificado'}
@@ -198,12 +198,12 @@ function QuotesPage() {
                       <FiscalBadge status={cotacao.estado} />
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <Link
-                        to={`/quotes/${cotacao.id}`}
+                      <a
+                        href={`/quotes/${cotacao.id}`}
                         className="p-2 hover:bg-boho-sand rounded-lg text-boho-taupe hover:text-boho-coffee transition-colors"
                       >
                         <MoreVertical size={18} />
-                      </Link>
+                      </a>
                     </td>
                   </tr>
                 ))

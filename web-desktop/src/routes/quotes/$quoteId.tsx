@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft, Download, Printer, CheckCircle, XCircle, Send, Loader2, Building2, Calendar, FileText, Hash, CreditCard } from 'lucide-react'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { FiscalBadge } from '@/components/ui/fiscal-badge'
@@ -11,7 +11,7 @@ export const Route = createFileRoute('/quotes/$quoteId')({
 
 function QuoteDetailPage() {
   const { quoteId } = Route.useParams()
-  const navigate = useNavigate()
+
   const [showRejeitarModal, setShowRejeitarModal] = useState(false)
   const [motivoRejeicao, setMotivoRejeicao] = useState('')
   
@@ -69,7 +69,6 @@ function QuoteDetailPage() {
   }
   
   const canAccept = cotacao.estado === 'EMITIDA'
-  const canReject = cotacao.estado === 'EMITIDA'
   const isProcessed = cotacao.estado === 'PROCESSADA' || cotacao.estado === 'ACEITE'
 
   return (
@@ -180,12 +179,12 @@ function QuoteDetailPage() {
                 <FileText className="text-boho-accent" size={20} />
                 <div>
                   <p className="text-sm text-boho-brown">Documento de origem</p>
-                  <Link 
-                    to={`/quotes/${cotacao.documentoOrigemId}`}
+                  <a 
+                    href={`/quotes/${cotacao.documentoOrigemId}`}
                     className="text-boho-accent hover:underline font-medium"
                   >
                     Ver documento original
-                  </Link>
+                  </a>
                 </div>
               </div>
             </FiscalCard>
@@ -309,13 +308,13 @@ function QuoteDetailPage() {
                 Esta cotação já foi processada e convertida em documento fiscal.
               </p>
               {cotacao.documentoOrigemId && (
-                <Link
-                  to={`/invoices/${cotacao.documentoOrigemId}`}
+                <a
+                  href={`/invoices/${cotacao.documentoOrigemId}`}
                   className="mt-3 inline-flex items-center gap-2 text-boho-accent hover:underline"
                 >
                   <CreditCard size={16} />
                   Ver fatura
-                </Link>
+                </a>
               )}
             </FiscalCard>
           )}

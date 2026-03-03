@@ -1336,3 +1336,92 @@ COMMENT ON COLUMN tenants.wallet_balance IS 'Saldo calculado automaticamente via
 COMMENT ON COLUMN proformas.itens IS 'Snapshot imutável dos itens acordados na negociação';
 COMMENT ON COLUMN pagamentos.gateway_ref IS 'ID da transação no gateway externo (M-Pesa, Stripe, etc)';
 COMMENT ON COLUMN documentos_fiscais.hash_documento IS 'SHA256 do documento conforme requisitos fiscais';
+
+-- =====================================================
+-- FUNÇÕES DE STOCK
+-- =====================================================
+
+-- Função para movimentar stock via SQL
+CREATE OR REPLACE FUNCTION movimentar_stock(
+    p_empresa_id UUID,
+    p_artigo_id UUID,
+    p_documento_id UUID,
+    p_tipo VARCHAR(20),
+    p_quantidade NUMERIC,
+    p_referencia VARCHAR(50),
+    p_observacoes TEXT,
+    p_utilizador_id UUID
+) RETURNS UUID AS $$
+DECLARE
+    v_stock_atual NUMERIC;
+    v_stock_anterior NUMERIC;
+    v_novo_stock NUMERIC;
+    v_movimento_id UUID;
+    v_artigo_tipo VARCHAR(20);
+BEGIN
+    -- Verificar se artigo existe e é produto
+    SELECT stock_atual, tipo INTO v_stock_anterior, v_artigo_tipo
+    FROM artigos
+    WHERE id = p_artigo_id AND empresa_id = p_empresa_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Artigo não encontrado';
+    END IF;
+
+    IF v_artigo_tipo != 'PRODUTO' THEN
+        -- Serviços não movimentam stock
+        RETURN NULL;
+    END IF;
+
+    -- Calcular novo stock
+    IF p_tipo = 'ENTRADA' OR p_tipo = 'AJUSTE_POSITIVO' THEN
+        v_novo_stock := COALESCE(v_stock_anterior, 0) + p_quantidade;
+    ELSIF p_tipo = 'SAIDA' OR p_tipo = 'AJUSTE_NEGATIVO' THEN
+        v_novo_stock := COALESCE(v_stock_anterior, 0) - p_quantidade;
+        IF v_novo_stock < 0 THEN
+            RAISE EXCEPTION 'Stock insuficiente. Disponível: %, Solicitado: %', v_stock_anterior, p_quantidade;
+        END IF;
+    ELSIF p_tipo = 'AJUSTE' THEN
+        v_novo_stock := p_quantidade;
+    ELSE
+        RAISE EXCEPTION 'Tipo de movimento inválido: %', p_tipo;
+    END IF;
+
+    -- Atualizar artigo
+    UPDATE artigos
+    SET stock_atual = v_novo_stock,
+        updated_at = NOW()
+    WHERE id = p_artigo_id;
+
+    -- Criar movimento
+    INSERT INTO movimentos_stock (
+        empresa_id,
+        artigo_id,
+        documento_id,
+        utilizador_id,
+        tipo,
+        quantidade,
+        stock_anterior,
+        stock_atual,
+        referencia,
+        observacoes,
+        data_movimento,
+        created_at
+    ) VALUES (
+        p_empresa_id,
+        p_artigo_id,
+        p_documento_id,
+        p_utilizador_id,
+        p_tipo,
+        p_quantidade,
+        v_stock_anterior,
+        v_novo_stock,
+        p_referencia,
+        p_observacoes,
+        NOW(),
+        NOW()
+    ) RETURNING id INTO v_movimento_id;
+
+    RETURN v_movimento_id;
+END;
+$$ LANGUAGE plpgsql;

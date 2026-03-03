@@ -9,11 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StockRouteImport } from './routes/stock'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as MyQuotesRouteImport } from './routes/my-quotes'
 import { Route as MyPaymentsRouteImport } from './routes/my-payments'
@@ -27,6 +29,11 @@ import { Route as QuotesNewRouteImport } from './routes/quotes/new'
 import { Route as QuotesQuoteIdRouteImport } from './routes/quotes/$quoteId'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 
+const StockRoute = StockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -50,6 +57,11 @@ const QuotesRoute = QuotesRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentsRoute = PaymentsRouteImport.update({
@@ -123,11 +135,13 @@ export interface FileRoutesByFullPath {
   '/my-payments': typeof MyPaymentsRoute
   '/my-quotes': typeof MyQuotesRoute
   '/payments': typeof PaymentsRoute
+  '/products': typeof ProductsRoute
   '/profile': typeof ProfileRoute
   '/quotes': typeof QuotesRouteWithChildren
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/stock': typeof StockRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/quotes/$quoteId': typeof QuotesQuoteIdRoute
   '/quotes/new': typeof QuotesNewRoute
@@ -142,11 +156,13 @@ export interface FileRoutesByTo {
   '/my-payments': typeof MyPaymentsRoute
   '/my-quotes': typeof MyQuotesRoute
   '/payments': typeof PaymentsRoute
+  '/products': typeof ProductsRoute
   '/profile': typeof ProfileRoute
   '/quotes': typeof QuotesRouteWithChildren
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/stock': typeof StockRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/quotes/$quoteId': typeof QuotesQuoteIdRoute
   '/quotes/new': typeof QuotesNewRoute
@@ -162,11 +178,13 @@ export interface FileRoutesById {
   '/my-payments': typeof MyPaymentsRoute
   '/my-quotes': typeof MyQuotesRoute
   '/payments': typeof PaymentsRoute
+  '/products': typeof ProductsRoute
   '/profile': typeof ProfileRoute
   '/quotes': typeof QuotesRouteWithChildren
   '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/stock': typeof StockRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/quotes/$quoteId': typeof QuotesQuoteIdRoute
   '/quotes/new': typeof QuotesNewRoute
@@ -183,11 +201,13 @@ export interface FileRouteTypes {
     | '/my-payments'
     | '/my-quotes'
     | '/payments'
+    | '/products'
     | '/profile'
     | '/quotes'
     | '/register'
     | '/reports'
     | '/settings'
+    | '/stock'
     | '/admin/dashboard'
     | '/quotes/$quoteId'
     | '/quotes/new'
@@ -202,11 +222,13 @@ export interface FileRouteTypes {
     | '/my-payments'
     | '/my-quotes'
     | '/payments'
+    | '/products'
     | '/profile'
     | '/quotes'
     | '/register'
     | '/reports'
     | '/settings'
+    | '/stock'
     | '/admin/dashboard'
     | '/quotes/$quoteId'
     | '/quotes/new'
@@ -221,11 +243,13 @@ export interface FileRouteTypes {
     | '/my-payments'
     | '/my-quotes'
     | '/payments'
+    | '/products'
     | '/profile'
     | '/quotes'
     | '/register'
     | '/reports'
     | '/settings'
+    | '/stock'
     | '/admin/dashboard'
     | '/quotes/$quoteId'
     | '/quotes/new'
@@ -241,16 +265,25 @@ export interface RootRouteChildren {
   MyPaymentsRoute: typeof MyPaymentsRoute
   MyQuotesRoute: typeof MyQuotesRoute
   PaymentsRoute: typeof PaymentsRoute
+  ProductsRoute: typeof ProductsRoute
   ProfileRoute: typeof ProfileRoute
   QuotesRoute: typeof QuotesRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
+  StockRoute: typeof StockRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/stock': {
+      id: '/stock'
+      path: '/stock'
+      fullPath: '/stock'
+      preLoaderRoute: typeof StockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -284,6 +317,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payments': {
@@ -396,11 +436,13 @@ const rootRouteChildren: RootRouteChildren = {
   MyPaymentsRoute: MyPaymentsRoute,
   MyQuotesRoute: MyQuotesRoute,
   PaymentsRoute: PaymentsRoute,
+  ProductsRoute: ProductsRoute,
   ProfileRoute: ProfileRoute,
   QuotesRoute: QuotesRouteWithChildren,
   RegisterRoute: RegisterRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
+  StockRoute: StockRoute,
   AdminDashboardRoute: AdminDashboardRoute,
 }
 export const routeTree = rootRouteImport

@@ -55,7 +55,7 @@ export function useEntidades(params?: {
     queryKey: queryKeys.entidades.all(params),
     queryFn: async () => {
       const response = await entidadesService.listar(params)
-      return response.data
+      return response
     },
   })
 }
@@ -70,7 +70,7 @@ export function useClientes(params?: {
     queryKey: queryKeys.entidades.clientes(params),
     queryFn: async () => {
       const response = await entidadesService.listar({ tipo: 'CLIENTE', ...params })
-      return response.data
+      return response
     },
   })
 }
@@ -85,7 +85,7 @@ export function useFornecedores(params?: {
     queryKey: queryKeys.entidades.fornecedores(params),
     queryFn: async () => {
       const response = await entidadesService.listar({ tipo: 'FORNECEDOR', ...params })
-      return response.data
+      return response
     },
   })
 }
@@ -97,7 +97,7 @@ export function useEntidade(id?: string) {
     queryFn: async (): Promise<Entidade> => {
       if (!id) throw new Error('ID da entidade é obrigatório')
       const response = await entidadesService.obter(id)
-      return response.data
+      return response
     },
     enabled: !!id,
   })
@@ -110,7 +110,7 @@ export function useCriarEntidade() {
   return useMutation({
     mutationFn: async (input: CriarEntidadeInput) => {
       const response = await entidadesService.criar(input)
-      return response.data
+      return response
     },
     onSuccess: (_, variables) => {
       // Invalidar listas baseadas no tipo
@@ -132,7 +132,7 @@ export function useAtualizarEntidade() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: AtualizarEntidadeInput }) => {
       const response = await entidadesService.atualizar(id, data)
-      return response.data
+      return response
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.entidades.detail(variables.id) })
@@ -145,8 +145,6 @@ export function useAtualizarEntidade() {
 
 // Hook completo para gerenciamento de entidades
 export function useEntidadeManager(entidadeId?: string) {
-  const queryClient = useQueryClient()
-  
   const entidadeQuery = useEntidade(entidadeId)
   const criarMutation = useCriarEntidade()
   const atualizarMutation = useAtualizarEntidade()

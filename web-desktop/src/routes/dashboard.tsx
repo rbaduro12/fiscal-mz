@@ -1,15 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { 
   DollarSign, FileText, CheckCircle, Clock, 
-  AlertCircle, ArrowUpRight, ArrowRight, Plus, Download,
+  AlertCircle, ArrowRight, Plus, Download,
   CreditCard, Receipt, Package, Eye, ChevronRight,
   Loader2, TrendingUp, AlertTriangle
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useDashboard } from '@/hooks/use-dashboard'
 import { useCotacoes, useProformas, useFaturas } from '@/hooks/use-documentos'
-import { FiscalCard } from '@/components/ui/fiscal-card'
-import { FiscalBadge } from '@/components/ui/fiscal-badge'
+
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardPage,
@@ -232,13 +231,13 @@ function DashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {cotacoesRecentes?.items?.length === 0 ? (
+              {cotacoesRecentes?.length === 0 ? (
                 <div className="text-center py-8 text-boho-brown">
                   <FileText className="w-12 h-12 mx-auto mb-3 text-boho-taupe" />
                   <p>Nenhuma cotação encontrada</p>
                 </div>
               ) : (
-                cotacoesRecentes?.items?.map((cotacao: any) => {
+                cotacoesRecentes?.map((cotacao: any) => {
                   const statusConfig = getStatusConfig(cotacao.estado)
                   
                   return (
@@ -274,13 +273,13 @@ function DashboardPage() {
 
                       {/* Actions based on status */}
                       <div className="flex items-center justify-end gap-3 mt-4 pl-12">
-                        <Link
-                          to={`/quotes/${cotacao.id}`}
+                        <a
+                          href={`/quotes/${cotacao.id}`}
                           className="flex items-center gap-2 px-4 py-2 text-sm text-boho-brown hover:text-boho-coffee hover:bg-boho-sand rounded-lg transition-colors"
                         >
                           <Eye className="w-4 h-4" />
                           Ver detalhes
-                        </Link>
+                        </a>
                       </div>
                     </div>
                   )
@@ -329,7 +328,7 @@ function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {faturasRecentes?.items?.map((fatura: any) => {
+                  {faturasRecentes?.map((fatura: any) => {
                     const statusConfig = getStatusConfig(fatura.estado)
                     
                     return (
@@ -405,7 +404,7 @@ function DashboardPage() {
               Proformas Pendentes
             </h3>
             <div className="space-y-3">
-              {proformasRecentes?.items?.filter((p: any) => p.estado === 'EMITIDA').slice(0, 3).map((proforma: any) => (
+              {proformasRecentes?.filter((p: any) => p.estado === 'EMITIDA').slice(0, 3).map((proforma: any) => (
                 <div key={proforma.id} className="p-3 bg-boho-sand/30 rounded-xl">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-sm font-medium text-boho-coffee">{proforma.numeroCompleto}</p>
@@ -415,17 +414,17 @@ function DashboardPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-boho-brown">{proforma.entidade?.nome || 'Cliente'}</p>
-                    <Link
-                      to={`/proformas/${proforma.id}`}
+                    <a
+                      href={`/proformas/${proforma.id}`}
                       className="text-xs text-boho-terracotta hover:text-boho-coffee font-medium"
                     >
                       Ver →
-                    </Link>
+                    </a>
                   </div>
                 </div>
               ))}
               
-              {(!proformasRecentes?.items || proformasRecentes.items.filter((p: any) => p.estado === 'EMITIDA').length === 0) && (
+              {(!proformasRecentes || proformasRecentes.filter((p: any) => p.estado === 'EMITIDA').length === 0) && (
                 <div className="text-center py-6">
                   <CheckCircle className="w-12 h-12 text-boho-sage mx-auto mb-2" />
                   <p className="text-boho-brown">Nenhuma proforma pendente!</p>

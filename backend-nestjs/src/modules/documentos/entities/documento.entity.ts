@@ -167,6 +167,9 @@ export class Documento {
   @Column({ type: 'text', nullable: true })
   observacoes: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, any>;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

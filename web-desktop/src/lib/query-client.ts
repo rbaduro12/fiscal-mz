@@ -117,6 +117,15 @@ export const queryKeys = {
     categorias: ['artigos', 'categorias'] as const,
   },
   
+  // Stock
+  stock: {
+    all: ['stock'] as const,
+    movimentos: (artigoId: string) => ['stock', 'movimentos', artigoId] as const,
+    resumo: () => ['stock', 'resumo'] as const,
+    alertas: () => ['stock', 'alertas'] as const,
+    atual: (artigoId: string) => ['stock', 'atual', artigoId] as const,
+  },
+  
   // Dashboard
   dashboard: {
     resumo: ['dashboard', 'resumo'] as const,
@@ -137,17 +146,23 @@ export const queryKeys = {
     perfil: ['settings', 'perfil'] as const,
     preferencias: ['settings', 'preferencias'] as const,
   },
+  
+  // Notificações
+  notificacoes: {
+    all: (filters?: object) => ['notificacoes', filters] as const,
+    naoLidas: () => ['notificacoes', 'nao-lidas'] as const,
+  },
 } as const
 
 // Helper para invalidar múltiplas queries
-export function invalidateQueries(queryClient: QueryClient, patterns: Array<string | readonly string[]>) {
+export function invalidateQueries(queryClient: QueryClient, patterns: Array<readonly unknown[]>) {
   patterns.forEach(pattern => {
     queryClient.invalidateQueries({ queryKey: pattern })
   })
 }
 
 // Helper para cancelar queries
-export function cancelQueries(queryClient: QueryClient, patterns: Array<string | readonly string[]>) {
+export function cancelQueries(queryClient: QueryClient, patterns: Array<readonly unknown[]>) {
   patterns.forEach(pattern => {
     queryClient.cancelQueries({ queryKey: pattern })
   })

@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { authService } from '@/lib/api'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 
-export type UserRole = 'ADMIN' | 'GESTOR' | 'VENDEDOR' | 'CONTADOR' | 'CLIENTE'
+export type UserRole = 'ADMIN' | 'GESTOR' | 'VENDEDOR' | 'CONTADOR' | 'CONTABILISTA' | 'CLIENTE'
 
 export interface Empresa {
   id: string
@@ -88,18 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authService.login(email, password)
       
-      if (!response.success) {
-        throw new Error(response.message || 'Erro ao fazer login')
-      }
+      // Backend retorna: { access_token, user }
+      const { access_token, user } = response
       
-      const { user, accessToken, refreshToken } = response.data
+      if (!access_token || !user) {
+        throw new Error('Resposta inválida do servidor')
+      }
       
       // Salvar dados
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user))
-      localStorage.setItem(STORAGE_KEYS.accessToken, accessToken)
-      if (refreshToken) {
-        localStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken)
-      }
+      localStorage.setItem(STORAGE_KEYS.accessToken, access_token)
       
       setUser(user)
       

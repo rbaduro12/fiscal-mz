@@ -11,12 +11,12 @@ function ProfilePage() {
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    name: user?.nome || '',
     email: user?.email || '',
-    phone: user?.phone || '',
-    companyName: user?.companyName || '',
-    companyAddress: user?.companyAddress || '',
-    nuit: user?.nuit || '',
+    phone: user?.telefone || '',
+    companyName: user?.empresa?.nome || '',
+    companyAddress: user?.empresa?.endereco || '',
+    nuit: user?.empresa?.nuit || '',
   })
 
   const handleSave = () => {
@@ -42,8 +42,8 @@ function ProfilePage() {
           <div className="bg-white rounded-2xl p-6 shadow-boho border border-boho-beige text-center">
             <div className="relative inline-block mb-4">
               <img 
-                src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name}&background=C67B5C&color=fff`}
-                alt={user?.name}
+                src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nome || '')}&background=C67B5C&color=fff`}
+                alt={user?.nome}
                 className="w-32 h-32 rounded-2xl border-4 border-boho-beige mx-auto"
               />
               <button className="absolute bottom-2 right-2 w-10 h-10 bg-boho-terracotta hover:bg-boho-coffee text-white rounded-xl flex items-center justify-center shadow-lg transition-colors">
@@ -52,7 +52,7 @@ function ProfilePage() {
             </div>
             
             <h2 className="font-display font-semibold text-xl text-boho-coffee mb-1">
-              {user?.name}
+              {user?.nome}
             </h2>
             <p className="text-boho-brown text-sm mb-4">{user?.email}</p>
             
