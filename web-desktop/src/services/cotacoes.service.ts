@@ -64,15 +64,16 @@ export interface AceitarCotacaoInput {
 
 export const cotacoesService = {
   // Listar cotações enviadas (vendedor)
-  listarEnviadas: async (params?: { page?: number; limit?: number }) => {
-    const { data } = await api.get('/api/v1/quotes/sent', { params })
-    return data
+  listarEnviadas: async (params?: { page?: number; limit?: number }): Promise<Cotacao[]> => {
+    const response = await api.get('/api/v1/quotes/sent', { params })
+    // Backend retorna { data: Cotacao[], meta: {...} }
+    return response.data?.data || []
   },
 
   // Listar cotações recebidas (cliente)
-  listarRecebidas: async (params?: { page?: number; limit?: number }) => {
-    const { data } = await api.get('/api/v1/quotes/received', { params })
-    return data
+  listarRecebidas: async (params?: { page?: number; limit?: number }): Promise<Cotacao[]> => {
+    const response = await api.get('/api/v1/quotes/received', { params })
+    return response.data?.data || []
   },
 
   // Obter detalhes de uma cotação

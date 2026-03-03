@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSentQuotes } from '@/hooks/use-quote-workflow'
 import { FiscalCard } from '@/components/ui/fiscal-card'
 import { FiscalBadge } from '@/components/ui/fiscal-badge'
+import type { Cotacao } from '@/services/cotacoes.service'
 
 export const Route = createFileRoute('/quotes')({
   component: QuotesPage,
@@ -31,8 +32,9 @@ function QuotesPage() {
     limit,
   })
 
+  // Service retorna array direto
   const cotacoes = data || []
-  const total = cotacoes.length || 0
+  const total = cotacoes.length
   const totalPages = Math.ceil(total / limit)
 
   if (isLoading) {

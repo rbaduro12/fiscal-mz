@@ -1,8 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { cotacoesService, type CriarCotacaoInput, type AceitarCotacaoInput } from '@/services/cotacoes.service'
+import { 
+  cotacoesService, 
+  type CriarCotacaoInput, 
+  type AceitarCotacaoInput,
+  type Cotacao 
+} from '@/services/cotacoes.service'
 import { queryKeys } from '@/lib/query-client'
-import type { Cotacao } from '@/types'
 
 // Hook para gerenciar o workflow de cotações (CQRS)
 export function useQuoteWorkflow(cotacaoId?: string) {
@@ -102,7 +106,7 @@ export function useCreateQuote() {
 
 // Hook para listar cotações enviadas (vendedor)
 export function useSentQuotes(filters?: { status?: string; page?: number; limit?: number }) {
-  return useQuery({
+  return useQuery<Cotacao[]>({
     queryKey: queryKeys.cotacoes.all(filters),
     queryFn: async () => {
       return cotacoesService.listarEnviadas(filters)
@@ -112,7 +116,7 @@ export function useSentQuotes(filters?: { status?: string; page?: number; limit?
 
 // Hook para listar cotações recebidas (cliente)
 export function useReceivedQuotes(filters?: { status?: string; page?: number; limit?: number }) {
-  return useQuery({
+  return useQuery<Cotacao[]>({
     queryKey: queryKeys.cotacoes.recebidas(filters),
     queryFn: async () => {
       return cotacoesService.listarRecebidas(filters)
