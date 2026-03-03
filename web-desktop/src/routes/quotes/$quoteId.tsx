@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ArrowLeft, Download, Printer, CheckCircle, XCircle, Send, Loader2, Building2, Calendar, FileText, Hash, CreditCard } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
 import { FiscalCard } from '@/components/ui/fiscal-card'
-import { FiscalBadge } from '@/components/ui/fiscal-badge'
-import { useQuoteWorkflow } from '@/hooks/use-quote-workflow'
 import { useState } from 'react'
+import { useQuoteWorkflow, useInitiatePayment } from '@/hooks/use-quote-workflow'
+import { useEntidade } from '@/hooks/use-entidades'
+import {
+  StatusBadge,
+  QuoteWorkflow,
+  QuoteSummary,
+  QuoteActions,
+} from '@/components/cotacoes'
 
 export const Route = createFileRoute('/quotes/$quoteId')({
   component: QuoteDetailPage,
@@ -11,18 +17,22 @@ export const Route = createFileRoute('/quotes/$quoteId')({
 
 function QuoteDetailPage() {
   const { quoteId } = Route.useParams()
+  const [showPagamentoSuccess, setShowPagamentoSuccess] = useState(false)
 
-  const [showRejeitarModal, setShowRejeitarModal] = useState(false)
-  const [motivoRejeicao, setMotivoRejeicao] = useState('')
-  
-  const { 
-    quote: cotacao, 
-    isLoading, 
+  const {
+    quote: cotacao,
+    isLoading,
     isError,
+    error,
     acceptQuote,
-    isAccepting
+    generateProforma,
+    isAccepting,
+    isGeneratingProforma,
   } = useQuoteWorkflow(quoteId)
-  
+
+  const { data: cliente } = useEntidade(cotacao?.clienteId)
+  const iniciarPagamento = useInitiatePayment()
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -33,277 +43,152 @@ function QuoteDetailPage() {
       </div>
     )
   }
-  
+
   if (isError || !cotacao) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-boho-brown mb-4">Erro ao carregar cotação</p>
-          <Link to="/quotes" className="text-boho-accent hover:underline">
-            Voltar para cotações
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-boho-brown mb-4">{(error as Error)?.message || 'Erro ao carregar cotação'}</p>
+          <Link
+            to="/quotes"
+            className="px-4 py-2 bg-boho-accent text-white rounded-lg hover:bg-boho-accent-hover transition-colors"
+          >
+            Voltar para Cotações
           </Link>
         </div>
       </div>
     )
   }
-  
 
-  
   const handleAceitar = async () => {
     try {
       await acceptQuote()
       alert('Cotação aceita com sucesso!')
     } catch (error: any) {
-      alert('Erro ao aceitar cotação: ' + error.message)
+      alert(error.message || 'Erro ao aceitar cotação')
     }
   }
-  
-  const handleRejeitar = async () => {
-    alert('Funcionalidade de rejeição em desenvolvimento')
-    setShowRejeitarModal(false)
+
+  const handleGerarProforma = async () => {
+    try {
+      await generateProforma()
+      alert('Proforma gerada com sucesso!')
+    } catch (error: any) {
+      alert(error.message || 'Erro ao gerar proforma')
+    }
   }
-  
-  const canAccept = cotacao?.status === 'ENVIADA'
-  const isProcessed = cotacao?.status === 'CONVERTIDA' || cotacao?.status === 'ACEITE'
+
+  const handleIniciarPagamento = async (metodo: 'MPESA' | 'CASH' | 'ESCROW') => {
+    if (!cotacao.proformaId) {
+      alert('Proforma não encontrada')
+      return
+    }
+    try {
+      await iniciarPagamento.mutateAsync({
+        proformaId: cotacao.proformaId,
+        method: metodo,
+      })
+      setShowPagamentoSuccess(true)
+      alert(`Pagamento iniciado via ${metodo}`)
+    } catch (error: any) {
+      alert(error.message || 'Erro ao iniciar pagamento')
+    }
+  }
+
+  const handleRejeitar = async (motivo: string) => {
+    // TODO: Implementar rejeição
+    alert('Cotação rejeitada')
+    console.log('Motivo:', motivo)
+  }
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <Link to="/quotes" className="p-2 hover:bg-boho-sand rounded-lg text-boho-brown transition-colors">
+          <Link
+            to="/quotes"
+            className="p-2 hover:bg-boho-sand rounded-lg text-boho-brown transition-colors"
+          >
             <ArrowLeft size={24} />
           </Link>
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-boho-coffee">{cotacao.numero}</h1>
-              <FiscalBadge status={cotacao.status} />
+              <StatusBadge status={cotacao.status} />
             </div>
             <p className="text-boho-brown mt-1">
               Criada em {new Date(cotacao.createdAt).toLocaleDateString('pt-MZ')}
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-boho-beige hover:border-boho-brown text-boho-brown rounded-lg transition-colors">
-            <Printer size={18} />
-            Imprimir
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 border border-boho-beige hover:border-boho-brown text-boho-brown rounded-lg transition-colors">
-            <Download size={18} />
-            PDF
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 px-4 py-2 border border-boho-beige hover:border-boho-brown text-boho-brown rounded-lg transition-colors"
+          >
+            <RefreshCw size={18} />
+            Atualizar
           </button>
         </div>
       </div>
 
+      {/* Workflow */}
+      <FiscalCard className="mb-6">
+        <QuoteWorkflow status={cotacao.status} proformaId={cotacao.proformaId} />
+      </FiscalCard>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Info Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <FiscalCard>
-              <div className="flex items-center gap-3 mb-3">
-                <Building2 className="text-boho-accent" size={20} />
-                <h3 className="font-medium text-boho-coffee">Cliente</h3>
-              </div>
-              <p className="text-lg font-medium text-boho-coffee">Cliente #{cotacao.clienteId?.slice(0, 8) || 'N/A'}</p>
-              <p className="text-sm text-boho-brown">ID: {cotacao.clienteId || 'N/A'}</p>
-            </FiscalCard>
-            
-            <FiscalCard>
-              <div className="flex items-center gap-3 mb-3">
-                <Calendar className="text-boho-accent" size={20} />
-                <h3 className="font-medium text-boho-coffee">Validade</h3>
-              </div>
-              <p className="text-lg font-medium text-boho-coffee">
-                {cotacao.dataExpiracao 
-                  ? new Date(cotacao.dataExpiracao).toLocaleDateString('pt-MZ')
-                  : 'N/A'
-                }
-              </p>
-              <p className="text-sm text-boho-brown">
-                {cotacao.dataExpiracao && new Date(cotacao.dataExpiracao) < new Date() 
-                  ? 'Expirada'
-                  : 'Válida'
-                }
-              </p>
-            </FiscalCard>
-          </div>
-          
-          {/* Items Table */}
-          <FiscalCard>
-            <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Itens</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-boho-beige">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-boho-brown">Descrição</th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-boho-brown">Qtd</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-boho-brown">Preço Unit.</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-boho-brown">IVA</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-boho-brown">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cotacao.itens?.map((item: any, index: number) => (
-                    <tr key={index} className="border-b border-boho-beige/50">
-                      <td className="py-4 px-4 text-boho-coffee">{item.descricao}</td>
-                      <td className="py-4 px-4 text-center text-boho-brown">{item.quantidade}</td>
-                      <td className="py-4 px-4 text-right font-mono text-boho-coffee">
-                        MZN {item.precoUnitario?.toLocaleString('pt-MZ')}
-                      </td>
-                      <td className="py-4 px-4 text-right text-boho-brown">
-                        {item.taxaIva}%
-                      </td>
-                      <td className="py-4 px-4 text-right font-mono text-boho-coffee">
-                        MZN {item.totalLinha?.toLocaleString('pt-MZ')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </FiscalCard>
-          
-          {/* Documentos Relacionados */}
-          {cotacao.documentoOrigemId && (
-            <FiscalCard>
-              <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Documentos Relacionados</h2>
-              <div className="flex items-center gap-3 p-3 bg-boho-sand/30 rounded-lg">
-                <FileText className="text-boho-accent" size={20} />
-                <div>
-                  <p className="text-sm text-boho-brown">Documento de origem</p>
-                  <a 
-                    href={`/quotes/${cotacao.documentoOrigemId}`}
-                    className="text-boho-accent hover:underline font-medium"
-                  >
-                    Ver documento original
-                  </a>
-                </div>
-              </div>
-            </FiscalCard>
-          )}
-          
-          {/* Informações Fiscais */}
-          {cotacao.hashFiscal && (
-            <FiscalCard>
-              <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Informações Fiscais</h2>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Hash className="text-boho-taupe" size={18} />
-                  <div>
-                    <p className="text-sm text-boho-brown">Hash Fiscal</p>
-                    <code className="text-xs bg-boho-sand px-2 py-1 rounded text-boho-coffee">
-                      {cotacao.hashFiscal}
-                    </code>
-                  </div>
-                </div>
-                {cotacao.qrCodeData && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-32 h-32 bg-white p-2 rounded border border-boho-beige">
-                      {/* QR Code placeholder - em produção seria um componente real */}
-                      <div className="w-full h-full bg-boho-coffee/10 flex items-center justify-center text-xs text-boho-taupe">
-                        QR Code
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-boho-brown">QR Code Fiscal</p>
-                      <p className="text-xs text-boho-taupe">Portaria 97/2021</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </FiscalCard>
-          )}
+        <div className="lg:col-span-2">
+          <QuoteSummary cotacao={cotacao} cliente={cliente} />
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar - Ações */}
         <div className="space-y-6">
-          {/* Resumo */}
           <FiscalCard>
-            <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Resumo</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-boho-beige">
-                <span className="text-boho-brown">Subtotal</span>
-                <span className="font-mono text-boho-coffee">
-                  MZN {cotacao.subtotal?.toLocaleString('pt-MZ', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-boho-beige">
-                <span className="text-boho-brown">IVA</span>
-                <span className="font-mono text-boho-coffee">
-                  MZN {cotacao.totalIva?.toLocaleString('pt-MZ', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between py-3">
-                <span className="text-boho-coffee font-medium">Total</span>
-                <span className="font-mono text-2xl font-bold text-boho-accent">
-                  MZN {cotacao.total?.toLocaleString('pt-MZ', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
+            <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Ações</h2>
+            <QuoteActions
+              cotacao={cotacao}
+              onAceitar={handleAceitar}
+              onRejeitar={handleRejeitar}
+              onGerarProforma={handleGerarProforma}
+              onIniciarPagamento={handleIniciarPagamento}
+              isLoading={isAccepting || isGeneratingProforma || iniciarPagamento.isPending}
+            />
           </FiscalCard>
-          
-          {/* Ações */}
-          {canAccept && (
-            <FiscalCard>
-              <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Ações</h2>
-              <div className="space-y-3">
-                <button
-                  onClick={handleAceitar}
-                  disabled={isAccepting}
-                  className="w-full py-3 px-4 bg-boho-sage hover:bg-boho-sage/90 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  {isAccepting ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <CheckCircle size={20} />
-                  )}
-                  Aceitar Cotação
-                </button>
-                
-                <button
-                  onClick={() => setShowRejeitarModal(true)}
-                  className="w-full py-3 px-4 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <XCircle size={20} />
-                  Rejeitar
-                </button>
-                
-                <button
-                  className="w-full py-3 px-4 border border-boho-beige hover:border-boho-accent text-boho-brown rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <Send size={20} />
-                  Reenviar por Email
-                </button>
-              </div>
-            </FiscalCard>
-          )}
-          
-          {/* Status Processado */}
-          {isProcessed && (
-            <FiscalCard className="bg-boho-sage/10">
-              <div className="flex items-center gap-3 mb-3">
-                <CheckCircle className="text-boho-sage" size={24} />
-                <h2 className="text-lg font-semibold text-boho-coffee">Processada</h2>
-              </div>
-              <p className="text-boho-brown text-sm">
-                Esta cotação já foi processada e convertida em documento fiscal.
-              </p>
-              {cotacao.documentoOrigemId && (
-                <a
-                  href={`/invoices/${cotacao.documentoOrigemId}`}
-                  className="mt-3 inline-flex items-center gap-2 text-boho-accent hover:underline"
-                >
-                  <CreditCard size={16} />
-                  Ver fatura
-                </a>
-              )}
-            </FiscalCard>
-          )}
-          
-          {/* Timeline */}
+
+          {/* Status Info */}
+          <div
+            className={`p-4 rounded-lg border ${
+              cotacao.status === 'ACEITE'
+                ? 'bg-green-50 border-green-200'
+                : cotacao.status === 'REJEITADA'
+                ? 'bg-red-50 border-red-200'
+                : 'bg-blue-50 border-blue-200'
+            }`}
+          >
+            <h3 className="font-medium mb-1">
+              {cotacao.status === 'ENVIADA' && 'Aguardando resposta do cliente'}
+              {cotacao.status === 'ACEITE' && 'Cotação aceita pelo cliente'}
+              {cotacao.status === 'REJEITADA' && 'Cotação rejeitada'}
+              {cotacao.status === 'CONVERTIDA' && 'Convertida em documento fiscal'}
+            </h3>
+            <p className="text-sm text-boho-brown">
+              {cotacao.status === 'ENVIADA' &&
+                'O cliente ainda não respondeu a esta cotação. Você pode enviar um lembrete.'}
+              {cotacao.status === 'ACEITE' &&
+                'O cliente aceitou os termos. Gere a proforma para continuar com o pagamento.'}
+              {cotacao.status === 'REJEITADA' &&
+                'O cliente rejeitou esta cotação. Crie uma nova proposta se necessário.'}
+              {cotacao.status === 'CONVERTIDA' &&
+                'Esta cotação já foi convertida em documento fiscal.'}
+            </p>
+          </div>
+
+          {/* Histórico */}
           <FiscalCard>
             <h2 className="text-lg font-semibold mb-4 text-boho-coffee">Histórico</h2>
             <div className="space-y-4">
@@ -320,19 +205,32 @@ function QuoteDetailPage() {
                 <div className="flex gap-3">
                   <div className="w-2 h-2 bg-boho-sage rounded-full mt-2" />
                   <div>
-                    <p className="text-sm font-medium text-boho-coffee">Enviada</p>
+                    <p className="text-sm font-medium text-boho-coffee">Enviada ao cliente</p>
                     <p className="text-xs text-boho-brown">
                       {new Date(cotacao.createdAt).toLocaleString('pt-MZ')}
                     </p>
                   </div>
                 </div>
               )}
-              {isProcessed && (
+              {cotacao.dataAceite && (
                 <div className="flex gap-3">
-                  <div className="w-2 h-2 bg-boho-coffee rounded-full mt-2" />
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
                   <div>
-                    <p className="text-sm font-medium text-boho-coffee">Processada</p>
-                    <p className="text-xs text-boho-brown">Convertida em fatura</p>
+                    <p className="text-sm font-medium text-boho-coffee">Aceita pelo cliente</p>
+                    <p className="text-xs text-boho-brown">
+                      {new Date(cotacao.dataAceite).toLocaleString('pt-MZ')}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {cotacao.proformaId && (
+                <div className="flex gap-3">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2" />
+                  <div>
+                    <p className="text-sm font-medium text-boho-coffee">Proforma gerada</p>
+                    <p className="text-xs text-boho-brown">
+                      ID: {cotacao.proformaId.slice(0, 8)}...
+                    </p>
                   </div>
                 </div>
               )}
@@ -340,37 +238,25 @@ function QuoteDetailPage() {
           </FiscalCard>
         </div>
       </div>
-      
-      {/* Modal de Rejeição */}
-      {showRejeitarModal && (
+
+      {/* Modal de Sucesso de Pagamento */}
+      {showPagamentoSuccess && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-boho-coffee mb-4">Rejeitar Cotação</h3>
-            <p className="text-boho-brown mb-4">
-              Informe o motivo da rejeição (opcional):
-            </p>
-            <textarea
-              value={motivoRejeicao}
-              onChange={(e) => setMotivoRejeicao(e.target.value)}
-              placeholder="Motivo da rejeição..."
-              rows={3}
-              className="w-full px-4 py-3 bg-boho-cream border border-boho-beige rounded-lg text-boho-coffee placeholder:text-boho-taupe focus:outline-none focus:ring-2 focus:ring-boho-accent/50 resize-none mb-4"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowRejeitarModal(false)}
-                className="flex-1 py-2 px-4 border border-boho-beige hover:border-boho-brown text-boho-brown rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleRejeitar}
-                disabled={isRejecting}
-                className="flex-1 py-2 px-4 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg transition-colors"
-              >
-                {isRejecting ? 'Processando...' : 'Confirmar Rejeição'}
-              </button>
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <RefreshCw className="text-green-600" size={32} />
             </div>
+            <h3 className="text-xl font-semibold text-boho-coffee mb-2">Pagamento Iniciado!</h3>
+            <p className="text-boho-brown mb-6">
+              O pagamento foi iniciado com sucesso. O cliente receberá as instruções para
+              completar o pagamento.
+            </p>
+            <button
+              onClick={() => setShowPagamentoSuccess(false)}
+              className="w-full py-3 px-4 bg-boho-accent hover:bg-boho-accent-hover text-white rounded-lg font-medium transition-colors"
+            >
+              Entendido
+            </button>
           </div>
         </div>
       )}
