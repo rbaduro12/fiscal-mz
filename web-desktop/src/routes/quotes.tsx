@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Plus, Search, Filter, MoreVertical, Loader2, AlertTriangle, FileText, TrendingUp, Clock, CheckCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useSentQuotes, useReceivedQuotes } from '@/hooks/use-quote-workflow'
@@ -26,6 +26,7 @@ const tabs = [
 ]
 
 function QuotesPage() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('enviadas')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -103,13 +104,13 @@ function QuotesPage() {
           <h1 className="text-3xl font-bold text-boho-coffee">Cotações</h1>
           <p className="text-boho-brown mt-1">Gerencie suas cotações e propostas comerciais</p>
         </div>
-        <Link
-          to="/quotes/new"
+        <button
+          onClick={() => navigate({ to: '/quotes/new' })}
           className="flex items-center gap-2 px-6 py-3 bg-boho-accent hover:bg-boho-accent-hover text-white rounded-lg font-medium transition-colors"
         >
           <Plus size={20} />
           Nova Cotação
-        </Link>
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -243,13 +244,19 @@ function QuotesPage() {
                   <td colSpan={7} className="py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <FileText className="w-12 h-12 text-boho-taupe" />
-                      <p className="text-boho-brown">Nenhuma cotação encontrada</p>
-                      <Link
-                        to="/quotes/new"
-                        className="text-boho-accent hover:text-boho-accent-hover font-medium"
-                      >
-                        Criar primeira cotação
-                      </Link>
+                      <p className="text-boho-brown">
+                        {activeTab === 'enviadas' 
+                          ? 'Nenhuma cotação enviada' 
+                          : 'Nenhuma cotação recebida'}
+                      </p>
+                      {activeTab === 'enviadas' && (
+                        <button
+                          onClick={() => navigate({ to: '/quotes/new' })}
+                          className="text-boho-accent hover:text-boho-accent-hover font-medium"
+                        >
+                          Criar primeira cotação
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
