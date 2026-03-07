@@ -174,15 +174,13 @@ function MyQuotesPage() {
             Minhas Cotações
           </h1>
           <p className="text-boho-brown">
-            Gerencie suas solicitações e acompanhe negociações
+            Visualize cotações recebidas da empresa e acompanhe negociações
           </p>
         </div>
-        <button
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-boho-terracotta hover:bg-boho-coffee text-white rounded-xl font-medium transition-colors shadow-boho"
-        >
-          <Plus size={20} />
-          Nova Cotação
-        </button>
+        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+          <FileText className="w-5 h-5 text-blue-600" />
+          <span className="text-sm text-blue-700">Portal do Cliente</span>
+        </div>
       </div>
 
       {/* Filters */}
@@ -442,18 +440,18 @@ function MyQuotesPage() {
             <h3 className="text-xl font-display font-semibold text-boho-coffee mb-2">
               Nenhuma cotação encontrada
             </h3>
-            <p className="text-boho-brown mb-6">
+            <p className="text-boho-brown mb-4">
               {searchTerm 
                 ? 'Tente ajustar seus filtros de busca'
-                : 'Você ainda não possui cotações. Solicite uma agora!'
+                : 'Você ainda não possui cotações recebidas da empresa.'
               }
             </p>
-            <button
-              className="inline-flex items-center gap-2 px-6 py-3 bg-boho-terracotta hover:bg-boho-coffee text-white rounded-xl font-medium transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Nova Cotação
-            </button>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-sm text-blue-700">
+                💡 <strong>Dica:</strong> As cotações são criadas pela empresa e enviadas para você. 
+                Entre em contato com sua empresa parceira para solicitar uma nova cotação.
+              </p>
+            </div>
           </div>
         )}
       </div>
