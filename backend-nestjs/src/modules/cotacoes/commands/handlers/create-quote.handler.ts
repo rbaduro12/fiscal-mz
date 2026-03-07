@@ -26,13 +26,12 @@ export class CreateQuoteHandler {
     const { data, vendedorId } = command;
     const { tenantId, clienteId, itens, validadeDias = 30, observacoes, idempotencyKey } = data;
 
-    // Verificar idempotência
+    // Verificar idempotência (usando query raw para campo JSONB)
     if (idempotencyKey) {
-      const existing = await this.eventStore.findOne({
-        where: {
-          metadata: { idempotencyKey },
-        },
-      });
+      const existing = await this.eventStore
+        .createQueryBuilder('event')
+        .where("event.metadata->>'idempotencyKey' = :key", { key: idempotencyKey })
+        .getOne();
       if (existing) {
         throw new ConflictException('Cotação já processada com esta chave');
       }
