@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { authService } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
+import { isValidToken } from '@/lib/auth'
 
 export type UserRole = 'ADMIN' | 'GESTOR' | 'VENDEDOR' | 'CONTADOR' | 'CONTABILISTA' | 'CLIENTE'
 
@@ -59,8 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const accessToken = localStorage.getItem(STORAGE_KEYS.accessToken)
         
         if (savedUser && accessToken) {
-          const parsedUser = JSON.parse(savedUser)
-          setUser(parsedUser)
+          // Verificar se o token ainda é válido (não expirado)
+          if (isValidToken(accessToken)) {
+            const parsedUser = JSON.parse(savedUser)
+            setUser(parsedUser)
+          } else {
+            // Token expirado - limpar dados
+            console.log('[Auth] Token expirado, limpando sessão')
+            clearAuthData()
+          }
         }
       } catch (error) {
         console.error('Erro ao inicializar auth:', error)

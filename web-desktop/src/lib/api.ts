@@ -47,26 +47,33 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
+      // Verificar se é erro de token inválido (não apenas expirado)
+      const errorMessage = error.response?.data?.message || ''
+      const isInvalidToken = errorMessage.includes('Invalid') || errorMessage.includes('invalid')
+
+      // Se for token inválido ou não tiver refresh token, limpar e redirecionar
+      const refreshToken = localStorage.getItem('refresh_token')
+      
+      if (isInvalidToken || !refreshToken) {
+        // Limpar tokens e redirecionar para login
+        import('./auth').then(({ logout }) => logout())
+        return Promise.reject(error)
+      }
+
       try {
         // Tentar refresh token
-        const refreshToken = localStorage.getItem('refresh_token')
-        if (refreshToken) {
-          const { data } = await axios.post(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3000/v1'}/auth/refresh`,
-            { refreshToken }
-          )
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:3000/v1'}/auth/refresh`,
+          { refreshToken }
+        )
 
-          localStorage.setItem('access_token', data.accessToken)
-          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
+        localStorage.setItem('access_token', data.accessToken)
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
 
-          return api(originalRequest)
-        }
+        return api(originalRequest)
       } catch (refreshError) {
         // Limpar tokens e redirecionar para login
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('fiscal_user')
-        window.location.href = '/login'
+        import('./auth').then(({ logout }) => logout())
       }
     }
 
